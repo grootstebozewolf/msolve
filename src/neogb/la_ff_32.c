@@ -28,32 +28,10 @@
 #include <arm_neon.h>
 #endif
 
-static inline cf32_t *normalize_dense_matrix_row_ff_32(
-        cf32_t *row,
-        const hm_t len,
-        const uint32_t fc
-        )
-{
-    len_t i;
-
-    const hm_t os       = len % UNROLL;
-    const uint32_t inv  = mod_p_inverse_32(row[0], fc);
-
-    for (i = 1; i < os; ++i) {
-        row[i]  = (cf32_t)(((uint64_t)row[i] * inv) % fc);
-    }
-    /* we need to set i to os since os < 1 is possible */
-    for (i = os; i < len; i += UNROLL) {
-        row[i]    = (cf32_t)(((uint64_t)row[i] * inv) % fc);
-        row[i+1]  = (cf32_t)(((uint64_t)row[i+1] * inv) % fc);
-        row[i+2]  = (cf32_t)(((uint64_t)row[i+2] * inv) % fc);
-        row[i+3]  = (cf32_t)(((uint64_t)row[i+3] * inv) % fc);
-    }
-    row[0]  = 1;
-
-    return row;
-}
-
+#define LA_NORM_CF_T cf32_t
+#define LA_NORM_FF(name) name##_ff_32
+#define LA_NORM_INV(a, p) mod_p_inverse_32((a), (p))
+#include "la_ff_normalize.c"
 static inline void normalize_dense_matrix_row_kernel_ff_32(
         cf32_t *row,
         const len_t start,
@@ -231,32 +209,6 @@ static int is_kernel_trivial(
     return 1;
 }
 #endif
-
-static inline cf32_t *normalize_sparse_matrix_row_ff_32(
-        cf32_t *row,
-        const len_t os,
-        const len_t len,
-        const uint32_t fc
-        )
-{
-    len_t i;
-
-    const uint32_t inv  = mod_p_inverse_32(row[0], fc);
-
-    for (i = 0; i < os; ++i) {
-        row[i]  =  (cf32_t)(((uint64_t)row[i] * inv) % fc);
-    }
-    /* we need to set i to os since os < 1 is possible */
-    for (i = os; i < len; i += UNROLL) {
-        row[i]    = (cf32_t)(((uint64_t)row[i] * inv) % fc);
-        row[i+1]  = (cf32_t)(((uint64_t)row[i+1] * inv) % fc);
-        row[i+2]  = (cf32_t)(((uint64_t)row[i+2] * inv) % fc);
-        row[i+3]  = (cf32_t)(((uint64_t)row[i+3] * inv) % fc);
-    }
-    row[0]  = 1;
-
-    return row;
-}
 
 static inline cf32_t *adjust_multiplier_sparse_matrix_row_ff_32(
         cf32_t *row,
