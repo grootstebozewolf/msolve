@@ -326,6 +326,9 @@ static len_t quotient_basis(
 
     len_t *ind      = calloc((unsigned long)nv, sizeof(len_t));
 
+    /* the quotient basis is recomputed from scratch, release the one of
+     * the last call */
+    free(qb);
     qb  = (hm_t *)calloc((unsigned long)1, sizeof(hm_t));
     qb[0] = check_lm_divisibility_and_insert_in_hash_table(
                             ev, (*htp), bs);
@@ -768,6 +771,9 @@ end_sat_step:
     if (ps != NULL) {
         free_pairset(&ps);
     }
+    /* the meta data must not keep the freed tables */
+    st->ht = NULL;
+    st->ps = NULL;
 
     return 1;
 }

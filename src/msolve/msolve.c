@@ -2072,6 +2072,23 @@ static int equal_param(param_t *param, param_t *test_param){
   return 1;
 }
 
+/* Frees the basis computed by core_gba in initial_modular_step.  Over a
+ * prime field (in_place, the characteristic of the input is the prime) F4
+ * consumes its input and the result owns the hash table of the input,
+ * which nothing else frees; over the rationals the result shares the hash
+ * table of the input basis, which stays with that basis. */
+static void free_modular_step_basis(
+        bs_t **bsp,
+        const int in_place
+        )
+{
+    if (in_place) {
+        free_basis(bsp);
+    } else {
+        free_basis_without_hash_table(bsp);
+    }
+}
+
 static int32_t *initial_modular_step(
                                      sp_matfglm_t **bmatrix,
                                      int32_t **bdiv_xn,
@@ -2110,6 +2127,8 @@ static int32_t *initial_modular_step(
 
     int32_t error = 0;
     int32_t empty_solution_set = 1;
+    /* F4 works in place on gbg when its characteristic is the prime */
+    const int in_place = md->fc == fc;
     bs_t *bs = core_gba(gbg, md, &error, fc);
 
     md->learning_rtime = realtime()-rt;
@@ -2124,8 +2143,7 @@ static int32_t *initial_modular_step(
                                                                  md);
 
     if (empty_solution_set == 1) {
-        free_basis_without_hash_table(&(bs));
-        free(bs);
+        free_modular_step_basis(&bs, in_place);
         return NULL;
     }
 
@@ -2172,8 +2190,7 @@ static int32_t *initial_modular_step(
                     fprintf (VERBSTREAM,"------------------------------------------------------------------------------------------------------\n");
                 }
                 free(lmb);
-                free_basis_without_hash_table(&(bs));
-                free(bs);
+                free_modular_step_basis(&bs, in_place);
                 return NULL;
             }
 
@@ -2191,8 +2208,7 @@ static int32_t *initial_modular_step(
                 *dim = 0;
                 *dquot_ori = dquot;
                 free(lmb);
-                free_basis_without_hash_table(&(bs));
-                free(bs);
+                free_modular_step_basis(&bs, in_place);
                 return NULL;
             }
             if((*bparam)->degelimpol != dquot){
@@ -2263,15 +2279,13 @@ static int32_t *initial_modular_step(
         }
         *dim = 0;
         *dquot_ori = dquot;
-        free_basis_without_hash_table(&(bs));
-        free(bs);
+        free_modular_step_basis(&bs, in_place);
         return lmb;
     }
     else{
         *dim  = 1;
         *dquot_ori = -1;
-        free_basis_without_hash_table(&(bs));
-        free(bs);
+        free_modular_step_basis(&bs, in_place);
         return NULL;
     }
 }
@@ -5085,6 +5099,63 @@ void manage_output(int b, int dim, int dquot, files_gb *files,
   }
 }
 
+/* Frees what a one-shot Groebner basis branch of core_msolve leaves behind:
+ * the basis bs with its hash table, a further basis sharing that table (the
+ * saturating element, the elements to be reduced), the meta data and the
+ * arrays filled by export_results_from_gba, when exported is nonzero. */
+static void free_gba_branch_data(
+        bs_t **bsp,
+        bs_t **auxp,
+        md_t **stp,
+        int32_t **blen,
+        int32_t **bexp,
+        void **bcf,
+        const int exported
+        )
+{
+    if (exported) {
+        free(*blen);
+        free(*bexp);
+        free(*bcf);
+        *blen = NULL;
+        *bexp = NULL;
+        *bcf  = NULL;
+    }
+    if (auxp != NULL && *auxp != NULL) {
+        free_basis_without_hash_table(auxp);
+    }
+    if (*bsp != NULL) {
+        free_shared_hash_data((*bsp)->ht);
+        free_basis(bsp);
+    }
+    if (*stp != NULL) {
+        free_meta_data(stp);
+    }
+}
+
+/* Frees the result buffers of core_msolve and the primes kept across its
+ * genericity restarts. */
+static void free_core_msolve_buffers(
+        int32_t **bldp,
+        int32_t ***blenp,
+        int32_t ***bexpp,
+        void ***bcfp,
+        primes_t **init_primesp
+        )
+{
+    free(*bldp);
+    *bldp = NULL;
+    free(*blenp);
+    *blenp = NULL;
+    free(*bexpp);
+    *bexpp = NULL;
+    free(*bcfp);
+    *bcfp = NULL;
+    if (*init_primesp != NULL) {
+        free_lucky_primes(init_primesp);
+    }
+}
+
 int core_msolve(
   int32_t la_option,
   int32_t use_signatures,
@@ -5434,6 +5505,9 @@ restart:
 		  output_timer_stop(files, &ot);
 		}
             }
+            /* core_f4sat frees sat */
+            free_gba_branch_data(&bs, NULL, &st, blen, bexp, bcf, is_gb != 1);
+            free_core_msolve_buffers(&bld, &blen, &bexp, &bcf, &init_primes);
             return 0;
         }
 	if (colon == 1) {
@@ -5761,6 +5835,7 @@ restart:
                        &init_primes, info_level, print_gb,
                        generate_pbm, precision, files, round, get_param);
       if(print_gb){
+          free_core_msolve_buffers(&bld, &blen, &bexp, &bcf, &init_primes);
           return 0;
       }
 
@@ -6020,8 +6095,10 @@ restart:
             }
             free(st);
             st  = NULL;
+            free(mul);
 
         }
+        free_core_msolve_buffers(&bld, &blen, &bexp, &bcf, &init_primes);
         return 0;
     }
     else{/* characteristic is 0 */
@@ -6419,6 +6496,23 @@ restart:
                     /* printf("bs[%u]->lml = %u\n", i, bs[i]->lml); */
                 }
             /* } */
+            for (i = 0; i < st->nprimes; ++i) {
+                if (bs[i] != NULL) {
+                    /* the bases of the primes use the hash table lht */
+                    free_basis_without_hash_table(&(bs[i]));
+                }
+            }
+            free(bs);
+            free_hash_table(&lht);
+            free_hash_table(&tht);
+            free_trace(&trace);
+            free_basis_without_hash_table(&sat_qq);
+            free_basis(&bs_qq);
+            free_lucky_primes(&lp);
+            free(lp);
+            free(invalid_gens);
+            free_meta_data(&st);
+            free_core_msolve_buffers(&bld, &blen, &bexp, &bcf, &init_primes);
             return 0;
       } else {       /* characteristic is 0 and elim_block = 0 and saturate = 0 */
 
@@ -6475,6 +6569,7 @@ restart:
                     generate_pbm, precision, files, round, get_param);
 
             if(print_gb){
+              free_core_msolve_buffers(&bld, &blen, &bexp, &bcf, &init_primes);
               return 0;
             }
 

@@ -84,9 +84,9 @@ jobs:
         run: cat msolve-*/_build/sub/test-suite.log || true
 
   build-asan:
-    # make check with AddressSanitizer: out-of-bounds accesses and uses after
-    # free fail the tests. Leak detection is off, as msolve does not free
-    # everything before exiting.
+    # make check with AddressSanitizer: out-of-bounds accesses, uses after
+    # free and memory leaks fail the tests. The few known leaks are listed,
+    # with the reason, in test/lsan.supp.
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -101,7 +101,8 @@ jobs:
         run: make
       - name: make check
         env:
-          ASAN_OPTIONS: detect_leaks=0
+          ASAN_OPTIONS: detect_leaks=1
+          LSAN_OPTIONS: suppressions=${{ github.workspace }}/test/lsan.supp
         run: make check
       - name: show test-suite.log if test failed
         if: failure()
