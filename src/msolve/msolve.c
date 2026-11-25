@@ -2181,6 +2181,25 @@ static int32_t *initial_modular_step(
 
             check_and_set_vars_squared_in_monomial_basis(squvars, lmb,
                                                          dquot, gens->nvars);
+            /* FGLM does not support primes from FGLM_MAX_PRIME on. This
+             * is not a genericity failure, so report it as unsupported
+             * (success = -1) instead of letting the caller retry with
+             * another variable order or linear form. */
+            if (fc >= FGLM_MAX_PRIME) {
+                fprintf(ERRSTREAM,
+                        "Solving needs the change of ordering (FGLM), which "
+                        "supports primes below %u; got %" PRIu64 ".\n"
+                        "Use -g 1 or -g 2 for a Groebner basis only, or a "
+                        "smaller prime.\n",
+                        (unsigned)FGLM_MAX_PRIME, (uint64_t)fc);
+                *success = -1;
+                *dim = 0;
+                *dquot_ori = dquot;
+                free(lmb);
+                free_basis_without_hash_table(&(bs));
+                free(bs);
+                return NULL;
+            }
             *bparam = nmod_fglm_compute_trace_data(*bmatrix, fc, bs->ht->nv,
                                                    *bsz, *nlins_ptr, linvars,
                                                    lineqs_ptr[0], squvars,
@@ -3021,6 +3040,16 @@ int msolve_trace_qq(mpz_param_t *mpz_paramp,
 					  gens,
 					  files,
 					  &success);
+  /* FGLM does not support the prime: not retried, see initial_modular_step.
+   * Return before the code below, which reads success as a boolean. */
+  if (success == -1) {
+    free_msolve_trace_qq_initial_data(invalid_gens, st, lp, bs_qq, bs, nmod_params,
+        bad_primes, bmatrix, bdiv_xn, blen_gb_xn, bstart_cf_gb_xn, bextra_nf,
+        blens_extra_nf, bexps_extra_nf, bcfs_extra_nf, bdata_fglm, bdata_bms,
+        num_gb, leadmons_ori, leadmons_current, bnlins, blinvars, linvars,
+        lineqs_ptr, bsquvars, squvars, lmb_ori, field_char);
+    return -5;
+  }
 
 
   if (*is0dim_ptr == -1) {
@@ -5082,6 +5111,10 @@ void manage_output(int b, int dim, int dquot, files_gb *files,
   if (b == -3) {
     fprintf(ERRSTREAM, "Problem when checking meta data\n");
     (*mpz_paramp)->dim = -3;
+  }
+  if (b == -5) {
+    /* the prime is not supported by FGLM, reported where it was detected */
+    (*mpz_paramp)->dim = -1;
   }
 }
 

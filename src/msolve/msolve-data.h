@@ -32,6 +32,12 @@
 #include "../neogb/libneogb.h"
 
 #include <flint/nmod_poly.h>
+
+/* Largest prime (exclusive) for which the change of ordering (FGLM) is
+ * implemented: its linear algebra keeps products of field elements in
+ * reduced form only below this bound. Solving over a prime field needs
+ * FGLM; Groebner bases alone (-g) work for every supported prime. */
+#define FGLM_MAX_PRIME 1518500213
 #define MODP(a,b)                               \
 	(a) % (b)
 
