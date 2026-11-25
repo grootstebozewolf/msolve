@@ -329,7 +329,13 @@ static void insert_and_update_spairs(
      * of the hash table. kd and kt store the degree of all pairs with the
      * k-th new element and the total degree of their lcms before the
      * criterion is applied, these are needed for the older pairs. */
-    spair_t *pp = (spair_t *)gb_malloc(np * sizeof(spair_t));
+    /* The candidate pairs of the k-th new element are built in a block of
+     * its thread, of size nmax; the ones that survive the criterion end up
+     * at the front of that block and are kept in surv[k] (nsurv[k] of them).
+     * So only the survivors take memory beyond one block per thread, not
+     * all np candidates. */
+    spair_t **surv  = (spair_t **)gb_calloc((uint64_t)npivs, sizeof(spair_t *));
+    len_t *nsurv    = (len_t *)gb_calloc((uint64_t)npivs, sizeof(len_t));
     deg_t *pdeg = (deg_t *)gb_malloc(np * sizeof(deg_t));
     deg_t *ptd  = (deg_t *)gb_malloc(np * sizeof(deg_t));
     const len_t nmax  = bl + npivs - 1;
@@ -351,6 +357,7 @@ static void insert_and_update_spairs(
     exp_t *dx     = (exp_t *)gb_malloc((uint64_t)dxsz * sizeof(exp_t));
     len_t *dp     = (len_t *)gb_malloc((uint64_t)dxsz * sizeof(len_t));
     spair_t *sp   = (spair_t *)gb_malloc((uint64_t)nmax * sizeof(spair_t));
+    spair_t *pw   = (spair_t *)gb_malloc((uint64_t)nmax * sizeof(spair_t));
     len_t *cnt    = NULL;
     deg_t ccap    = 0;
     ht_t lht      = *bht;
@@ -361,7 +368,7 @@ static void insert_and_update_spairs(
     }
 #pragma omp for schedule(dynamic)
     for (k = 0; k < npivs; ++k) {
-        spair_t *p    = pp + off[k];
+        spair_t *p    = pw;
         deg_t *kd     = pdeg + off[k];
         deg_t *kt     = ptd + off[k];
         const len_t n = bl + k;
@@ -505,10 +512,12 @@ static void insert_and_update_spairs(
         for (l = 0; l < ns; ++l) {
             sp[l] = p[srt[l]];
         }
-        memcpy(p, sp, (uint64_t)ns * sizeof(spair_t));
-        for (i = ns; i < n; ++i) {
-            p[i].deg = -1;
+        /* keep the survivors, the block is reused for the next element */
+        if (ns > 0) {
+            surv[k] = (spair_t *)gb_malloc((uint64_t)ns * sizeof(spair_t));
+            memcpy(surv[k], sp, (uint64_t)ns * sizeof(spair_t));
         }
+        nsurv[k] = ns;
     }
     free(e);
     free(ev);
@@ -520,6 +529,7 @@ static void insert_and_update_spairs(
     free(dx);
     free(dp);
     free(sp);
+    free(pw);
     free(cnt);
     }
 
@@ -564,8 +574,8 @@ static void insert_and_update_spairs(
      * pairs of the first k new elements */
     uint64_t *soff  = (uint64_t *)gb_malloc((uint64_t)(npivs+1) * sizeof(uint64_t));
     uint64_t nrem   = 0;
-    for (j = 0; j < np; ++j) {
-        nrem  += pp[j].deg >= 0;
+    for (k = 0; k < npivs; ++k) {
+        nrem  += nsurv[k];
     }
     spair_t *pq     = (spair_t *)gb_malloc((nrem + nfp) * sizeof(spair_t));
     /* the lcms of the remaining pairs are inserted in bht */
@@ -575,22 +585,23 @@ static void insert_and_update_spairs(
     j = 0;
     soff[0] = 0;
     for (k = 0; k < npivs; ++k) {
-        for (i = 0; i < bl+k; ++i) {
-            if (pp[off[k]+i].deg >= 0) {
-                pq[j] = pp[off[k]+i];
-                /* insert the lcm of the remaining new pair */
-                pq[j].lcm = get_lcm(bs->hm[pq[j].gen1][OFFSET],
-                        bs->hm[pq[j].gen2][OFFSET], bht, bht);
-                j++;
-            }
+        for (i = 0; i < nsurv[k]; ++i) {
+            pq[j] = surv[k][i];
+            /* insert the lcm of the remaining new pair */
+            pq[j].lcm = get_lcm(bs->hm[pq[j].gen1][OFFSET],
+                    bs->hm[pq[j].gen2][OFFSET], bht, bht);
+            j++;
         }
+        free(surv[k]);
+        surv[k] = NULL;
         if (st->boolean && bs->red[bl+k] == 0) {
             j += field_pairs(pq + j, bl+k, bs, bht, st);
         }
         soff[k+1] = j;
     }
-    free(pp);
-    pp  = pq;
+    free(surv);
+    free(nsurv);
+    spair_t *pp = pq;
 
     /* Gebauer-Moeller: the old pair check of the later new elements for
      * the pairs of the earlier ones, the lcms are compared as above */
