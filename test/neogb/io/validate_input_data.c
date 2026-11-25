@@ -31,6 +31,7 @@ int main(void)
     if (res == 0) return 1;
 
     if (invalid_gens[0] != 0 || invalid_gens[1] != 0) return 1; 
+    free(invalid_gens);
     if (field_char != 32003) return 1;
     if (mon_order != 0) return 1;
     if (elim_block_len != 1) return 1;
