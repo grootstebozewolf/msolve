@@ -83,6 +83,30 @@ jobs:
         if: failure()
         run: cat msolve-*/_build/sub/test-suite.log || true
 
+  build-asan:
+    # make check with AddressSanitizer: out-of-bounds accesses and uses after
+    # free fail the tests. Leak detection is off, as msolve does not free
+    # everything before exiting.
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: "Install dependencies"
+        run: sudo apt install libgmp-dev libflint-dev libmpfr-dev libntl-dev
+      - name: autogen
+        run: ./autogen.sh
+      - name: configure
+        run: ./configure --enable-sanitizers
+      - name: make
+        run: make
+      - name: make check
+        env:
+          ASAN_OPTIONS: detect_leaks=0
+        run: make check
+      - name: show test-suite.log if test failed
+        if: failure()
+        run: cat test-suite.log || true
+
   build-fixed-seed:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
