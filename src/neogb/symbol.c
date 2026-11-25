@@ -1394,6 +1394,13 @@ static int preprocessing(
         generate_matrix_from_trace(mat, bs, md);
     }
     if (mat->nc == 0) {
+        /* a matrix without columns has no rows and does not reach the
+         * linear algebra, which would release its arrays of row pointers */
+        free(mat->rr);
+        free(mat->tr);
+        free(mat->rba);
+        mat->rr  = mat->tr = NULL;
+        mat->rba = NULL;
         return 1;
     } else {
         return 0;
