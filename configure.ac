@@ -53,6 +53,22 @@ if test x$openmp = xtrue ; then
 		AC_OPENMP
 fi
 
+# check if we want a build with AddressSanitizer, for testing: it reports
+# out-of-bounds accesses and uses after free, which valgrind cannot do for
+# builds with AVX-512 instructions
+AC_ARG_ENABLE([sanitizers],
+	[  --enable-sanitizers     Build with AddressSanitizer (for testing, slower)],
+	[case "${enableval}" in
+		yes) 	sanitizers=true ;;
+		no)		sanitizers=false ;;
+		*)		AC_MSG_ERROR([bad value ${enableval} for --enable-sanitizers]) ;;
+	esac],[sanitizers=false])
+
+if test x$sanitizers = xtrue ; then
+		CFLAGS="$CFLAGS -fsanitize=address -fno-omit-frame-pointer"
+		LDFLAGS="$LDFLAGS -fsanitize=address"
+fi
+
 # Checks for header files.
 AC_CHECK_HEADERS([inttypes.h stdint.h])
 
