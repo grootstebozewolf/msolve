@@ -45,7 +45,7 @@ static void convert_multipliers_to_columns(
 
     /* all elements in the sht hash table represent
      * exactly one column of the matrix */
-    hcm = realloc(hcm, (uint64_t)sat->ld * sizeof(hi_t));
+    hcm = gb_realloc(hcm, (uint64_t)sat->ld * sizeof(hi_t));
     for (i = 0; i < sat->ld; ++i) {
         hcm[i]  = sat->hm[i][MULT];
     }
@@ -105,7 +105,7 @@ static void convert_hashes_to_columns_sat(
 
     /* all elements in the sht hash table represent
      * exactly one column of the matrix */
-    hcm = realloc(hcm, (uint64_t)(esld-1) * sizeof(hi_t));
+    hcm = gb_realloc(hcm, (uint64_t)(esld-1) * sizeof(hi_t));
     for (k = 0, j = 0, i = 1; i < esld; ++i) {
         hi  = hds[i].idx;
 
@@ -229,7 +229,7 @@ static void sba_convert_hashes_to_columns(
     hd_t *hd       = ht->hd;
     hm_t **cr      = smat->cr;
 
-    hcm = realloc(hcm, (uint64_t)eld * sizeof(hi_t));
+    hcm = gb_realloc(hcm, (uint64_t)eld * sizeof(hi_t));
     k = 0;
     for (i = 0; i < nr; ++i) {
         const len_t len = SM_OFFSET + cr[i][SM_LEN];
@@ -241,7 +241,7 @@ static void sba_convert_hashes_to_columns(
         }
     }
 
-    hcm = realloc(hcm, (uint64_t)k * sizeof(hi_t));
+    hcm = gb_realloc(hcm, (uint64_t)k * sizeof(hi_t));
     sort_r(hcm, (uint64_t)k, sizeof(hi_t), hcm_cmp, ht);
 
     smat->nc = k;
@@ -316,7 +316,7 @@ static void sort_columns(
     while (nb < (len_t)nthrds) {
         nb *= 2;
     }
-    len_t *b = (len_t *)malloc((unsigned long)(nb+1) * sizeof(len_t));
+    len_t *b = (len_t *)gb_malloc((unsigned long)(nb+1) * sizeof(len_t));
     for (i = 0; i <= nb; ++i) {
         b[i] = (len_t)((uint64_t)n * i / nb);
     }
@@ -325,7 +325,7 @@ static void sort_columns(
         sort_r(hcm+b[i], (uint64_t)(b[i+1]-b[i]), sizeof(hi_t), hcm_cmp, sht);
     }
     hi_t *src = hcm;
-    hi_t *dst = (hi_t *)malloc((unsigned long)n * sizeof(hi_t));
+    hi_t *dst = (hi_t *)gb_malloc((unsigned long)n * sizeof(hi_t));
     for (len_t w = 1; w < nb; w *= 2) {
 #pragma omp parallel for num_threads(nthrds) private(i)
         for (i = 0; i < nb; i += 2*w) {
@@ -385,7 +385,7 @@ static void convert_hashes_to_columns(
 
     /* all elements in the sht hash table represent
      * exactly one column of the matrix */
-    hcm = realloc(hcm, (uint64_t)(esld-1) * sizeof(hi_t));
+    hcm = gb_realloc(hcm, (uint64_t)(esld-1) * sizeof(hi_t));
     if (hcm == NULL) {
         fprintf(ERRSTREAM, "Allocating memory for hash-column lookup table failed,\n");
         fprintf(ERRSTREAM, "segmentation fault will follow.\n");
@@ -564,7 +564,7 @@ static void add_kernel_elements_to_basis(
         md_t *st
         )
 {
-    len_t *terms  = (len_t *)calloc((uint64_t)sat->ld, sizeof(len_t));
+    len_t *terms  = (len_t *)gb_calloc((uint64_t)sat->ld, sizeof(len_t));
     len_t nterms  = 0;
     len_t i, j, k;
 
@@ -581,7 +581,7 @@ static void add_kernel_elements_to_basis(
 
     /* we need to sort the kernel elements first (in order to track
      * redundancy correctly) */
-    hm_t **rows = (hm_t **)calloc((uint64_t)kernel->ld, sizeof(hm_t *));
+    hm_t **rows = (hm_t **)gb_calloc((uint64_t)kernel->ld, sizeof(hm_t *));
     k = 0;
     for (i = 0; i < kernel->ld; ++i) {
         /* printf("kernel[%u] = %p\n", i, kernel->hm[i]); */
@@ -754,8 +754,8 @@ static void convert_sparse_matrix_rows_to_basis_elements(
         while (bht->esz - bht->eld < mat->ncr) {
             enlarge_hash_table(bht);
         }
-        hcm = realloc(hcm, (unsigned long)mat->nc * sizeof(hi_t));
-        const exp_t **evs = (const exp_t **)malloc(
+        hcm = gb_realloc(hcm, (unsigned long)mat->nc * sizeof(hi_t));
+        const exp_t **evs = (const exp_t **)gb_malloc(
                 (unsigned long)mat->ncr * sizeof(exp_t *));
         for (i = 0; i < mat->ncr; ++i) {
             evs[i] = tc->ev + (unsigned long)i * bht->evl;

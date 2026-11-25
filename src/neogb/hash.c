@@ -58,7 +58,7 @@ ht_t *initialize_basis_hash_table(
 
     const len_t nv  = st->nvars;
 
-    ht_t *ht  = (ht_t *)malloc(sizeof(ht_t));
+    ht_t *ht  = (ht_t *)gb_malloc(sizeof(ht_t));
     ht->nv    = nv;
     ht->mo    = st->mo;
     ht->boolean = st->boolean;
@@ -72,11 +72,11 @@ ht_t *initialize_basis_hash_table(
     }
     ht->ndv = (unsigned long)nv < (CHAR_BIT * sizeof(sdm_t)) ?
         nv : (len_t)((CHAR_BIT * sizeof(sdm_t)));
-    ht->dv  = (len_t *)calloc((unsigned long)ht->ndv, sizeof(len_t));
+    ht->dv  = (len_t *)gb_calloc((unsigned long)ht->ndv, sizeof(len_t));
 
     ht->hsz   = (hl_t)pow(2, st->init_hts);
     ht->esz   = ht->hsz / 2;
-    ht->hmap  = calloc(ht->hsz, sizeof(hi_t));
+    ht->hmap  = gb_calloc(ht->hsz, sizeof(hi_t));
 
     if (st->nev == 0) {
         ht->evl = nv + 1; /* store also degree at first position */
@@ -104,12 +104,12 @@ ht_t *initialize_basis_hash_table(
 
     }
     /* generate divmask map */
-    ht->dm  = (sdm_t *)calloc(
+    ht->dm  = (sdm_t *)gb_calloc(
             (unsigned long)(ht->ndv * ht->bpv), sizeof(sdm_t));
 
     /* generate random values */
     ht->rsd = 2463534242;
-    ht->rn  = calloc((unsigned long)ht->evl, sizeof(val_t));
+    ht->rn  = gb_calloc((unsigned long)ht->evl, sizeof(val_t));
     for (i = ht->evl; i > 0; --i) {
         /* random values should not be zero */
         ht->rn[i-1] = pseudo_random_number_generator(&(ht->rsd)) | 1;
@@ -117,14 +117,14 @@ ht_t *initialize_basis_hash_table(
     /* generate exponent vector */
     /* keep first entry empty for faster divisibility checks */
     ht->eld = 1;
-    ht->hd  = (hd_t *)calloc(ht->esz, sizeof(hd_t));
-    ht->ev  = (exp_t **)malloc(ht->esz * sizeof(exp_t *));
+    ht->hd  = (hd_t *)gb_calloc(ht->esz, sizeof(hd_t));
+    ht->ev  = (exp_t **)gb_malloc(ht->esz * sizeof(exp_t *));
     if (ht->ev == NULL) {
         fprintf(ERRSTREAM, "Computation needs too much memory on this machine,\n");
         fprintf(ERRSTREAM, "could not initialize exponent vector for hash table,\n");
         fprintf(ERRSTREAM, "esz = %lu, segmentation fault will follow.\n", (unsigned long)ht->esz);
     }
-    exp_t *tmp  = (exp_t *)malloc(
+    exp_t *tmp  = (exp_t *)gb_malloc(
             (unsigned long)ht->evl * ht->esz * sizeof(exp_t));
     if (tmp == NULL) {
         fprintf(ERRSTREAM, "Exponent storage needs too much memory on this machine,\n");
@@ -230,7 +230,7 @@ ht_t *copy_hash_table(
         free(ht);
     }
 
-    ht  = (ht_t *)malloc(sizeof(ht_t));
+    ht  = (ht_t *)gb_malloc(sizeof(ht_t));
 
     ht->nv    = bht->nv;
     ht->mo    = bht->mo;
@@ -243,7 +243,7 @@ ht_t *copy_hash_table(
     ht->hsz   = bht->hsz;
     ht->esz   = bht->esz;
 
-    ht->hmap  = calloc(ht->hsz, sizeof(hi_t));
+    ht->hmap  = gb_calloc(ht->hsz, sizeof(hi_t));
     memcpy(ht->hmap, bht->hmap, (unsigned long)ht->hsz * sizeof(hi_t));
 
     ht->ndv = bht->ndv;
@@ -254,19 +254,19 @@ ht_t *copy_hash_table(
 
     /* generate exponent vector */
     /* keep first entry empty for faster divisibility checks */
-    ht->hd  = (hd_t *)calloc(ht->esz, sizeof(hd_t));
+    ht->hd  = (hd_t *)gb_calloc(ht->esz, sizeof(hd_t));
 
     /* only the first eld entries are in use: copying the whole allocated
      * size would touch (and thus make resident) memory which is never
      * read before being overwritten by an insertion */
     memcpy(ht->hd, bht->hd, (unsigned long)bht->eld * sizeof(hd_t));
-    ht->ev  = (exp_t **)malloc(ht->esz * sizeof(exp_t *));
+    ht->ev  = (exp_t **)gb_malloc(ht->esz * sizeof(exp_t *));
     if (ht->ev == NULL) {
         fprintf(ERRSTREAM, "Computation needs too much memory on this machine,\n");
         fprintf(ERRSTREAM, "could not initialize exponent vector for hash table,\n");
         fprintf(ERRSTREAM, "esz = %lu, segmentation fault will follow.\n", (unsigned long)ht->esz);
     }
-    exp_t *tmp  = (exp_t *)malloc(
+    exp_t *tmp  = (exp_t *)gb_malloc(
             (unsigned long)ht->evl * ht->esz * sizeof(exp_t));
     if (tmp == NULL) {
         fprintf(ERRSTREAM, "Exponent storage needs too much memory on this machine,\n");
@@ -293,7 +293,7 @@ ht_t *initialize_secondary_hash_table(
 {
     hl_t j;
 
-    ht_t *ht  = (ht_t *)malloc(sizeof(ht_t));
+    ht_t *ht  = (ht_t *)gb_malloc(sizeof(ht_t));
     ht->nv    = bht->nv;
     ht->mo    = bht->mo;
     ht->boolean = bht->boolean;
@@ -307,7 +307,7 @@ ht_t *initialize_secondary_hash_table(
     int32_t min = 3 > md->init_hts-5 ? 3 : md->init_hts-5;
     ht->hsz   = (hl_t)pow(2, min);
     ht->esz   = ht->hsz / 2;
-    ht->hmap  = calloc(ht->hsz, sizeof(hi_t));
+    ht->hmap  = gb_calloc(ht->hsz, sizeof(hi_t));
 
     /* divisor mask and random number seeds from basis hash table */
     ht->ndv = bht->ndv;
@@ -319,14 +319,14 @@ ht_t *initialize_secondary_hash_table(
     /* generate exponent vector */
     /* keep first entry empty for faster divisibility checks */
     ht->eld = 1;
-    ht->hd  = (hd_t *)calloc(ht->esz, sizeof(hd_t));
-    ht->ev  = (exp_t **)malloc(ht->esz * sizeof(exp_t *));
+    ht->hd  = (hd_t *)gb_calloc(ht->esz, sizeof(hd_t));
+    ht->ev  = (exp_t **)gb_malloc(ht->esz * sizeof(exp_t *));
     if (ht->ev == NULL) {
         fprintf(ERRSTREAM, "Computation needs too much memory on this machine,\n");
         fprintf(ERRSTREAM, "could not initialize exponent vector for hash table,\n");
         fprintf(ERRSTREAM, "esz = %lu, segmentation fault will follow.\n", (unsigned long)ht->esz);
     }
-    exp_t *tmp  = (exp_t *)malloc(
+    exp_t *tmp  = (exp_t *)gb_malloc(
             (unsigned long)ht->evl * ht->esz * sizeof(exp_t));
     if (tmp == NULL) {
         fprintf(ERRSTREAM, "Exponent storage needs too much memory on this machine,\n");
@@ -407,16 +407,16 @@ static void enlarge_hash_table(
     const hl_t esz  = ht->esz;
     const hi_t eld  = ht->eld;
 
-    ht->hd    = realloc(ht->hd, esz * sizeof(hd_t));
+    ht->hd    = gb_realloc(ht->hd, esz * sizeof(hd_t));
     memset(ht->hd+eld, 0, (esz-eld) * sizeof(hd_t));
-    ht->ev    = realloc(ht->ev, esz * sizeof(exp_t *));
+    ht->ev    = gb_realloc(ht->ev, esz * sizeof(exp_t *));
     if (ht->ev == NULL) {
         fprintf(ERRSTREAM, "Enlarging hash table failed for esz = %lu,\n", (unsigned long)esz);
         fprintf(ERRSTREAM, "segmentation fault will follow.\n");
     }
     /* note: memory is allocated as one big block, so reallocating
      *       memory from ev[0] is enough    */
-    ht->ev[0] = realloc(ht->ev[0],
+    ht->ev[0] = gb_realloc(ht->ev[0],
             esz * (unsigned long)ht->evl * sizeof(exp_t));
     if (ht->ev[0] == NULL) {
         fprintf(ERRSTREAM, "Enlarging exponent vector for hash table failed\n");
@@ -436,7 +436,7 @@ static void enlarge_hash_table(
     if (ht->hsz < (hl_t)pow(2,32)) {
         ht->hsz = 2 * ht->hsz;
         const hl_t hsz  = ht->hsz;
-        ht->hmap  = realloc(ht->hmap, hsz * sizeof(hi_t));
+        ht->hmap  = gb_realloc(ht->hmap, hsz * sizeof(hi_t));
         if (ht->hmap == NULL) {
             fprintf(ERRSTREAM, "Enlarging hash table failed for hsz = %lu,\n", (unsigned long)hsz);
             fprintf(ERRSTREAM, "segmentation fault will follow.\n");
@@ -511,8 +511,8 @@ void calculate_divmask(
   const len_t * const dv  = ht->dv;
   exp_t **ev  = ht->ev;
 
-  deg_t *max_exp  = (deg_t *)malloc((unsigned long)ht->ndv * sizeof(deg_t));
-  deg_t *min_exp  = (deg_t *)malloc((unsigned long)ht->ndv * sizeof(deg_t));
+  deg_t *max_exp  = (deg_t *)gb_malloc((unsigned long)ht->ndv * sizeof(deg_t));
+  deg_t *min_exp  = (deg_t *)gb_malloc((unsigned long)ht->ndv * sizeof(deg_t));
 
   exp_t *e  = ev[1];
 
@@ -973,8 +973,8 @@ static inline void reinitialize_hash_table(
         const hl_t esz  = ht->esz;
         const hl_t hsz  = ht->hsz;
         const len_t evl = ht->evl;
-        ht->hd  = realloc(ht->hd, esz * sizeof(hd_t));
-        ht->ev  = realloc(ht->ev, esz * sizeof(exp_t *));
+        ht->hd  = gb_realloc(ht->hd, esz * sizeof(hd_t));
+        ht->ev  = gb_realloc(ht->ev, esz * sizeof(exp_t *));
         if (ht->ev == NULL) {
             fprintf(ERRSTREAM, "Computation needs too much memory on this machine,\n");
             fprintf(ERRSTREAM, "could not reinitialize exponent vector for hash table,\n");
@@ -982,7 +982,7 @@ static inline void reinitialize_hash_table(
         }
         /* note: memory is allocated as one big block, so reallocating
          *       memory from evl[0] is enough    */
-        ht->ev[0]  = realloc(ht->ev[0],
+        ht->ev[0]  = gb_realloc(ht->ev[0],
                 esz * (unsigned long)evl * sizeof(exp_t));
         if (ht->ev[0] == NULL) {
             fprintf(ERRSTREAM, "Exponent storage needs too much memory on this machine,\n");
@@ -993,7 +993,7 @@ static inline void reinitialize_hash_table(
         for (i = 1; i < esz; ++i) {
             ht->ev[i] = ht->ev[0] + (i*evl);
         }
-        ht->hmap  = realloc(ht->hmap, hsz * sizeof(hi_t));
+        ht->hmap  = gb_realloc(ht->hmap, hsz * sizeof(hi_t));
     }
     memset(ht->hd, 0, ht->esz * sizeof(hd_t));
     memset(ht->hmap, 0, ht->hsz * sizeof(hi_t));
@@ -1144,7 +1144,7 @@ static void insert_in_hash_table_parallel(
 
     const len_t evl = ht->evl;
     const hi_t mod  = (hi_t)(ht->hsz - 1);
-    val_t *hv       = (val_t *)malloc((unsigned long)n * sizeof(val_t));
+    val_t *hv       = (val_t *)gb_malloc((unsigned long)n * sizeof(val_t));
 
     /* look up the exponent vectors, the hash table is not changed */
 #pragma omp parallel for num_threads(nthrds) private(i, j)
@@ -1208,7 +1208,7 @@ static inline void switch_hcm_data_to_basis_hash_table(
         enlarge_hash_table(bht);
     }
 
-    const exp_t **evs = (const exp_t **)malloc(
+    const exp_t **evs = (const exp_t **)gb_malloc(
             (unsigned long)mat->ncr * sizeof(exp_t *));
     for (len_t i = start; i < end; ++i) {
         evs[i-start] = sht->ev[hcm[i]];
@@ -1237,7 +1237,7 @@ static inline void insert_in_basis_hash_table_pivots(
     /* const hd_t * const hds    = sht->hd; */
     exp_t * const * const evs = sht->ev;
 
-    exp_t *evt  = (exp_t *)malloc((unsigned long)evl * sizeof(exp_t));
+    exp_t *evt  = (exp_t *)gb_malloc((unsigned long)evl * sizeof(exp_t));
     for (l = OFFSET; l < len; ++l) {
         memcpy(evt, evs[hcm[row[l]]],
                 (unsigned long)evl * sizeof(exp_t));
@@ -1599,13 +1599,13 @@ static void reset_hash_table(
     const bl_t bld  = bs->ld;
     const len_t pld = psl->ld;
 
-    ht->ev  = calloc(esz, sizeof(exp_t *));
+    ht->ev  = gb_calloc(esz, sizeof(exp_t *));
     if (ht->ev == NULL) {
         fprintf(ERRSTREAM, "Computation needs too much memory on this machine,\n");
         fprintf(ERRSTREAM, "cannot reset ht->ev, esz = %lu\n", (unsigned long)esz);
         fprintf(ERRSTREAM, "segmentation fault will follow.\n");
     }
-    exp_t *tmp  = (exp_t *)malloc(
+    exp_t *tmp  = (exp_t *)gb_malloc(
             (unsigned long)evl * esz * sizeof(exp_t));
     if (tmp == NULL) {
         fprintf(ERRSTREAM, "Computation needs too much memory on this machine,\n");
@@ -1696,7 +1696,7 @@ static inline hm_t *poly_to_matrix_row(
     const hm_t *poly
     )
 {
-  hm_t *row = (hm_t *)malloc((unsigned long)(poly[LENGTH]+OFFSET) * sizeof(hm_t));
+  hm_t *row = (hm_t *)gb_malloc((unsigned long)(poly[LENGTH]+OFFSET) * sizeof(hm_t));
   row[COEFFS]   = poly[COEFFS];
   row[PRELOOP]  = poly[PRELOOP];
   row[LENGTH]   = poly[LENGTH];
@@ -1864,7 +1864,7 @@ static void update_boolean_masks(
         return;
     }
     if (ht->bvsz < ht->esz) {
-        ht->bvm   = (uint64_t *)realloc(ht->bvm,
+        ht->bvm   = (uint64_t *)gb_realloc(ht->bvm,
                 (uint64_t)ht->esz * sizeof(uint64_t));
         ht->bvsz  = ht->esz;
     }
@@ -2123,7 +2123,7 @@ static void boolean_multiplied_polys_to_matrix_rows(
     len_t mlen  = 0;
     for (i = 0; i < nr; ++i) {
         const hm_t *poly  = polys[i];
-        rows[i] = (hm_t *)malloc((uint64_t)(poly[LENGTH]+OFFSET) * sizeof(hm_t));
+        rows[i] = (hm_t *)gb_malloc((uint64_t)(poly[LENGTH]+OFFSET) * sizeof(hm_t));
         rows[i][COEFFS]   = poly[COEFFS];
         mlen  = mlen > poly[LENGTH] ? mlen : poly[LENGTH];
     }
@@ -2132,9 +2132,9 @@ static void boolean_multiplied_polys_to_matrix_rows(
         tsz *= 2;
     }
     /* exponent vectors and hash values of the terms missing in sht */
-    exp_t **mev = (exp_t **)calloc((uint64_t)nr, sizeof(exp_t *));
-    val_t **mh  = (val_t **)calloc((uint64_t)nr, sizeof(val_t *));
-    len_t *nmiss  = (len_t *)calloc((uint64_t)nr, sizeof(len_t));
+    exp_t **mev = (exp_t **)gb_calloc((uint64_t)nr, sizeof(exp_t *));
+    val_t **mh  = (val_t **)gb_calloc((uint64_t)nr, sizeof(val_t *));
+    len_t *nmiss  = (len_t *)gb_calloc((uint64_t)nr, sizeof(len_t));
 
     /* sht might be (nearly) empty, so we handle the rows in chunks of
      * increasing size, see multiplied_polys_to_matrix_rows() */
@@ -2145,14 +2145,14 @@ static void boolean_multiplied_polys_to_matrix_rows(
 #pragma omp parallel num_threads(nthrds) private(i) if (hi - lo > 8)
         {
         boolean_row_t br;
-        br.h    = (val_t *)malloc((uint64_t)mlen * sizeof(val_t));
-        br.rep  = (len_t *)malloc((uint64_t)mlen * sizeof(len_t));
-        br.tab  = (uint64_t *)calloc((uint64_t)tsz, sizeof(uint64_t));
-        br.key  = (uint64_t *)malloc((uint64_t)mlen * sizeof(uint64_t));
+        br.h    = (val_t *)gb_malloc((uint64_t)mlen * sizeof(val_t));
+        br.rep  = (len_t *)gb_malloc((uint64_t)mlen * sizeof(len_t));
+        br.tab  = (uint64_t *)gb_calloc((uint64_t)tsz, sizeof(uint64_t));
+        br.key  = (uint64_t *)gb_malloc((uint64_t)mlen * sizeof(uint64_t));
         br.stamp  = 1;
-        br.ov   = (int8_t *)malloc((uint64_t)mlen * sizeof(int8_t));
-        br.me   = (exp_t *)malloc((uint64_t)mlen * evl * sizeof(exp_t));
-        br.mh   = (val_t *)malloc((uint64_t)mlen * sizeof(val_t));
+        br.ov   = (int8_t *)gb_malloc((uint64_t)mlen * sizeof(int8_t));
+        br.me   = (exp_t *)gb_malloc((uint64_t)mlen * evl * sizeof(exp_t));
+        br.mh   = (val_t *)gb_malloc((uint64_t)mlen * sizeof(val_t));
         br.tsz  = tsz;
         br.vm   = vm;
 #pragma omp for schedule(dynamic, 4)
@@ -2162,8 +2162,8 @@ static void boolean_multiplied_polys_to_matrix_rows(
                     ems + (uint64_t)i * evl, polys[i], bht, sht);
             nmiss[i]  = m;
             if (m > 0) {
-                mev[i]  = (exp_t *)malloc((uint64_t)m * evl * sizeof(exp_t));
-                mh[i]   = (val_t *)malloc((uint64_t)m * sizeof(val_t));
+                mev[i]  = (exp_t *)gb_malloc((uint64_t)m * evl * sizeof(exp_t));
+                mh[i]   = (val_t *)gb_malloc((uint64_t)m * sizeof(val_t));
                 memcpy(mev[i], br.me, (uint64_t)m * evl * sizeof(exp_t));
                 memcpy(mh[i], br.mh, (uint64_t)m * sizeof(val_t));
             }
@@ -2224,7 +2224,7 @@ static inline hm_t *multiplied_poly_to_matrix_row(
     boolean_multiplied_polys_to_matrix_rows(&row, 1, &hm, em, &p, sht, bht, 1);
     return row;
   }
-  hm_t *row = (hm_t *)malloc((uint64_t)(poly[LENGTH]+OFFSET) * sizeof(hm_t));
+  hm_t *row = (hm_t *)gb_malloc((uint64_t)(poly[LENGTH]+OFFSET) * sizeof(hm_t));
   row[COEFFS]   = poly[COEFFS];
   row[PRELOOP]  = poly[PRELOOP];
   row[LENGTH]   = poly[LENGTH];
@@ -2277,22 +2277,22 @@ static void insert_missing_multiplied_terms(
     exp_t * const * const evb = bht->ev;
 
     /* start of the missing terms of each row */
-    uint64_t *off = (uint64_t *)malloc((uint64_t)(nr+1) * sizeof(uint64_t));
+    uint64_t *off = (uint64_t *)gb_malloc((uint64_t)(nr+1) * sizeof(uint64_t));
     off[0] = 0;
     for (i = 0; i < nr; ++i) {
         off[i+1] = off[i] + nmiss[i];
     }
-    exp_t *tev    = (exp_t *)malloc(nm * evl * sizeof(exp_t));
-    val_t *th     = (val_t *)malloc(nm * sizeof(val_t));
-    uint64_t *rep = (uint64_t *)malloc(nm * sizeof(uint64_t));
-    hi_t *pos     = (hi_t *)malloc(nm * sizeof(hi_t));
+    exp_t *tev    = (exp_t *)gb_malloc(nm * evl * sizeof(exp_t));
+    val_t *th     = (val_t *)gb_malloc(nm * sizeof(val_t));
+    uint64_t *rep = (uint64_t *)gb_malloc(nm * sizeof(uint64_t));
+    hi_t *pos     = (hi_t *)gb_malloc(nm * sizeof(hi_t));
     uint64_t tsz  = 1;
     while (tsz < 2*nm) {
         tsz *= 2;
     }
     const uint64_t tmod = tsz - 1;
     /* slots store the first occurrence + 1 of a monomial, 0 if empty */
-    uint64_t *tab = (uint64_t *)calloc(tsz, sizeof(uint64_t));
+    uint64_t *tab = (uint64_t *)gb_calloc(tsz, sizeof(uint64_t));
 
 #pragma omp parallel for num_threads(nthrds) private(i, l, j) \
     schedule(dynamic, 4)
@@ -2427,7 +2427,7 @@ static void multiplied_polys_to_matrix_rows(
 
     for (i = 0; i < nr; ++i) {
         const hm_t *poly  = polys[i];
-        rows[i] = (hm_t *)malloc((uint64_t)(poly[LENGTH]+OFFSET) * sizeof(hm_t));
+        rows[i] = (hm_t *)gb_malloc((uint64_t)(poly[LENGTH]+OFFSET) * sizeof(hm_t));
         rows[i][COEFFS]   = poly[COEFFS];
         rows[i][PRELOOP]  = poly[PRELOOP];
         rows[i][LENGTH]   = poly[LENGTH];
@@ -2444,7 +2444,7 @@ static void multiplied_polys_to_matrix_rows(
         return;
     }
 
-    len_t *nmiss  = (len_t *)calloc((uint64_t)nr, sizeof(len_t));
+    len_t *nmiss  = (len_t *)gb_calloc((uint64_t)nr, sizeof(len_t));
 
     /* sht might be (nearly) empty, e.g. at the beginning of the pair
      * selection, then the lookups would fail. so we handle the rows in

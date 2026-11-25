@@ -117,7 +117,7 @@ static hm_t *copy_rows_to_block(
     for (i = 0; i < nr; ++i) {
         sz += (uint64_t)rows[i][LENGTH] + OFFSET;
     }
-    hm_t *block = (hm_t *)malloc(sz * sizeof(hm_t));
+    hm_t *block = (hm_t *)gb_malloc(sz * sizeof(hm_t));
     sz = 0;
     for (i = 0; i < nr; ++i) {
         const uint64_t len = (uint64_t)rows[i][LENGTH] + OFFSET;
@@ -172,9 +172,9 @@ static void allocate_reducer_bit_arrays(
 
     const uint64_t len = mat->nru / 32 + ((mat->nru % 32) != 0);
     mat->rbal = mat->nrl;
-    mat->rba  = (rba_t **)malloc((uint64_t)mat->rbal * sizeof(rba_t *));
+    mat->rba  = (rba_t **)gb_malloc((uint64_t)mat->rbal * sizeof(rba_t *));
     for (i = 0; i < mat->rbal; ++i) {
-        mat->rba[i] = (rba_t *)calloc(len, sizeof(rba_t));
+        mat->rba[i] = (rba_t *)gb_calloc(len, sizeof(rba_t));
     }
 }
 
@@ -205,7 +205,7 @@ static void construct_trace(
     /* non zero new elements exist */
     if (trace->ltd == trace->std) {
         trace->std  *=  2;
-        trace->td   =   realloc(trace->td,
+        trace->td   =   gb_realloc(trace->td,
                 (unsigned long)trace->std * sizeof(td_t));
         memset(trace->td+trace->std/2, 0,
                 (unsigned long)trace->std/2 * sizeof(td_t));
@@ -213,7 +213,7 @@ static void construct_trace(
 
     const unsigned long lrba = nru / 32 + ((nru % 32) != 0);
 
-    rba_t *reds = (rba_t *)calloc(lrba, sizeof(rba_t));
+    rba_t *reds = (rba_t *)gb_calloc(lrba, sizeof(rba_t));
 
     for (i = 0; i < nrl; ++i) {
         if (mat->tr[i] != NULL) {
@@ -225,12 +225,12 @@ static void construct_trace(
         }
     }
     mat->rbal = ctr;
-    mat->rba  = rba = realloc(rba, (unsigned long)mat->rbal * sizeof(rba_t *));
+    mat->rba  = rba = gb_realloc(rba, (unsigned long)mat->rbal * sizeof(rba_t *));
 
     const len_t ntr = ctr;
 
     /* construct rows to be reduced */
-    trace->td[ld].tri  = realloc(trace->td[ld].tri,
+    trace->td[ld].tri  = gb_realloc(trace->td[ld].tri,
             (unsigned long)ntr * 2 * sizeof(len_t));
     trace->td[ld].tld = 2 * ntr;
 
@@ -258,7 +258,7 @@ static void construct_trace(
     }
 
     /* construct rows to reduce with */
-    trace->td[ld].rri  = realloc(trace->td[ld].rri,
+    trace->td[ld].rri  = gb_realloc(trace->td[ld].rri,
             (unsigned long)nru * 2 * sizeof(len_t));
     trace->td[ld].rld = 2 * nru;
 
@@ -270,7 +270,7 @@ static void construct_trace(
             trace->nterms += mat->rr[i][LENGTH];
         }
     }
-    trace->td[ld].rri = realloc(trace->td[ld].rri,
+    trace->td[ld].rri = gb_realloc(trace->td[ld].rri,
             (unsigned long)ctr * sizeof(len_t));
     trace->td[ld].rld = ctr;
     const len_t nrr   = ctr;
@@ -281,11 +281,11 @@ static void construct_trace(
     const unsigned long nlrba = nrr / 2 / 32 + (((nrr / 2) % 32) != 0);
 
     /* construct rba information */
-    trace->td[ld].rba = realloc(trace->td[ld].rba,
+    trace->td[ld].rba = gb_realloc(trace->td[ld].rba,
             (unsigned long)ntr * sizeof(rba_t *));
     /* allocate memory     */
     for (i = 0; i < ntr; ++i) {
-        trace->td[ld].rba[i]  = calloc(nlrba, sizeof(rba_t));
+        trace->td[ld].rba[i]  = gb_calloc(nlrba, sizeof(rba_t));
     }
 
     ctr = 0;
@@ -320,7 +320,7 @@ static void construct_saturation_trace(
 
 
     /* construct rows to reduce with */
-    trace->ts[ld].rri  = realloc(trace->ts[ld].rri,
+    trace->ts[ld].rri  = gb_realloc(trace->ts[ld].rri,
             (unsigned long)nru * 2 * sizeof(len_t));
     trace->ts[ld].rld = 2 * nru;
 
@@ -341,7 +341,7 @@ static void add_lms_to_trace(
     len_t i;
 
     const len_t ld      = trace->ltd;
-    trace->td[ld].nlms  = realloc(trace->td[ld].nlms,
+    trace->td[ld].nlms  = gb_realloc(trace->td[ld].nlms,
             (unsigned long)np * sizeof(hm_t));
 
     uint64_t len = 0;
@@ -363,7 +363,7 @@ static void add_minimal_lmh_to_trace(
 
     const len_t ld    = trace->lts;
     const len_t lml   = bs->lml;
-    /* trace->ts[ld].lmh = realloc(trace->ts[ld].lmh,
+    /* trace->ts[ld].lmh = gb_realloc(trace->ts[ld].lmh,
             (unsigned long)lml * sizeof(hm_t));
 
     for (i = 0; i < lml; ++i) {

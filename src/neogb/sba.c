@@ -26,13 +26,13 @@ static inline crit_t *initialize_signature_criteria(
         const md_t * const st
         )
 {
-    crit_t *crit    =   calloc((unsigned long)st->ngens, sizeof(crit_t));
+    crit_t *crit    =   gb_calloc((unsigned long)st->ngens, sizeof(crit_t));
 
     for (int i = 0; i < st->ngens; ++i) {
         crit[i].sz = 8;
-        crit[i].sdm =  realloc(crit[i].sdm,
+        crit[i].sdm =  gb_realloc(crit[i].sdm,
                 (unsigned long)crit[i].sz * sizeof(sdm_t));
-        crit[i].hm  =  realloc(crit[i].hm,
+        crit[i].hm  =  gb_realloc(crit[i].hm,
                 (unsigned long)crit[i].sz * sizeof(hm_t));
     }
 
@@ -83,7 +83,7 @@ static len_t sba_add_new_elements_to_basis(
     bs->lo = bld;
 
     /* row indices of new elements are getting precached */
-    len_t *rine = calloc((unsigned long)nr, sizeof(len_t));
+    len_t *rine = gb_calloc((unsigned long)nr, sizeof(len_t));
 
     k = 0;
     i = 0;
@@ -117,13 +117,13 @@ next:
          *     printf("%u ", ht->ev[smat->cr[rine[i]][SM_SMON]][ii]);
          * }
          * printf("| %u\n", smat->cr[rine[i]][SM_SIDX]); */
-        bs->hm[bs->ld] = (hm_t *)malloc(
+        bs->hm[bs->ld] = (hm_t *)gb_malloc(
                 (unsigned long)(smat->cr[rine[i]][SM_LEN]+OFFSET) *
                 sizeof(hm_t));
         memcpy(bs->hm[bs->ld]+PRELOOP, smat->cr[rine[i]]+SM_PRE,
                 (unsigned long)(smat->cr[rine[i]][SM_LEN]+SM_OFFSET-SM_PRE) *
                 sizeof(hm_t));
-        bs->cf_32[bs->ld] = (cf32_t *)malloc(
+        bs->cf_32[bs->ld] = (cf32_t *)gb_malloc(
                 (unsigned long)(smat->cr[rine[i]][SM_LEN]) *
                 sizeof(cf32_t));
         memcpy(bs->cf_32[bs->ld], smat->cc32[smat->cr[rine[i]][SM_CFS]],
@@ -279,11 +279,11 @@ static inline void enlarge_sba_matrix(
         )
 {
         smat->csz *= 2;
-        smat->cr = realloc(
+        smat->cr = gb_realloc(
                 smat->cr, (unsigned long)smat->csz * sizeof(hm_t *));
-        smat->cc32 = realloc(
+        smat->cc32 = gb_realloc(
                 smat->cc32, (unsigned long)smat->csz * sizeof(cf32_t *));
-        smat->pc32 = realloc(
+        smat->pc32 = gb_realloc(
                 smat->pc32, (unsigned long)smat->csz * sizeof(cf32_t *));
 }
 
@@ -294,9 +294,9 @@ static inline void check_enlarge_signature_rule_array(
 {
     if (rew[sidx].ld >= rew[sidx].sz) {
         rew[sidx].sz  *= 2;
-        rew[sidx].sdm =  realloc(rew[sidx].sdm,
+        rew[sidx].sdm =  gb_realloc(rew[sidx].sdm,
                 (unsigned long)rew[sidx].sz * sizeof(sdm_t));
-        rew[sidx].hm  =  realloc(rew[sidx].hm,
+        rew[sidx].hm  =  gb_realloc(rew[sidx].hm,
                 (unsigned long)rew[sidx].sz * sizeof(hm_t));
     }
 }
@@ -333,7 +333,7 @@ static void add_row_to_sba_matrix(
     len_t shift     = var_idx < ht->ebl - 1 ? 1: 2;
     len_t deg_pos   = shift == 2 ? ht->ebl : 0;
     /* copy monomial entries in row */
-    smat->cr[cld]  =   malloc(
+    smat->cr[cld]  =   gb_malloc(
             ((unsigned long)smat->pr[idx][SM_LEN]+SM_OFFSET) * sizeof(hm_t));
     memcpy(smat->cr[cld], smat->pr[idx],
             ((unsigned long)smat->pr[idx][SM_LEN]+SM_OFFSET) * sizeof(hm_t));
@@ -399,7 +399,7 @@ static inline void add_row_with_signature(
     const len_t cld         = smat->cld;
     const len_t pld         = smat->pld;
     const len_t len = bs->hm[pos][LENGTH];
-    smat->cr[cld]           = (hm_t *)malloc(
+    smat->cr[cld]           = (hm_t *)gb_malloc(
             (len + SM_OFFSET) * sizeof(hm_t));
     /* copy polynomial data, take a look at the difference between
      * the meta data stored in hm arrays from bs and the
@@ -436,7 +436,7 @@ static inline crit_t *initialize_syzygies_schreyer(
 {
     const len_t bld = bs->ld;
     /* when initializing syzygies we assume that bs->ld == st->ngens */
-    crit_t *syz =   calloc((unsigned long)bs->ld, sizeof(crit_t));
+    crit_t *syz =   gb_calloc((unsigned long)bs->ld, sizeof(crit_t));
     syz[0].ld   =   0;
     syz[0].sz   =   0;
     /* We allocate one more slot of memory than needed, thus also
@@ -444,8 +444,8 @@ static inline crit_t *initialize_syzygies_schreyer(
      * slot for fewer size checks if enlargement of the syzygy
      * rule arrays are needed later on. */
     for (len_t i = 0; i < bld; ++i) {
-        syz[i].hm   =   calloc((unsigned long)bld-i, sizeof(hm_t));
-        syz[i].sdm  =   calloc((unsigned long)bld-i, sizeof(sdm_t));
+        syz[i].hm   =   gb_calloc((unsigned long)bld-i, sizeof(hm_t));
+        syz[i].sdm  =   gb_calloc((unsigned long)bld-i, sizeof(sdm_t));
         syz[i].ld   =   0;
         syz[i].sz   =   bld-i;
         for (len_t j = i+1; j < bld; ++j) {
@@ -500,11 +500,11 @@ static void sba_prepare_next_degree(
     smat->cld  = smat->csz = smat->nz = smat->nc = 0;
 
     smat->csz = (smat->pld * st->nvars) + ni;
-    smat->cr  = (hm_t **)calloc(
+    smat->cr  = (hm_t **)gb_calloc(
             (unsigned long)smat->csz,sizeof(hm_t *));
 
     /* allocate memory to store initial generators in pr and pc32 */
-    smat->pc32 = realloc(smat->pc32,
+    smat->pc32 = gb_realloc(smat->pc32,
             (unsigned long)(smat->pld + ni) * sizeof(cf32_t *));
 }
 
@@ -579,7 +579,7 @@ static void sba_final_reduction_step(
     bs->lml = bs->ld;
 
     ht_t *sht  = initialize_secondary_hash_table(ht, st);
-    mat_t *mat = (mat_t *)calloc(1, sizeof(mat_t));
+    mat_t *mat = (mat_t *)gb_calloc(1, sizeof(mat_t));
     /* note: bht will become sht, and sht will become NULL,
      * thus we need pointers */
     reduce_basis(bs, mat, st);
@@ -653,10 +653,10 @@ int core_sba_schreyer(
 
     /* hashes-to-columns map, initialized with length 1, is reallocated
      * in each call when generating matrices for linear algebra */
-    hi_t *hcm = (hi_t *)malloc(sizeof(hi_t));
+    hi_t *hcm = (hi_t *)gb_malloc(sizeof(hi_t));
 
     /* signature matrix and previous degree signature matrix */
-    smat_t *smat = calloc(1, sizeof(smat_t));
+    smat_t *smat = gb_calloc(1, sizeof(smat_t));
     /* initial degree is the lowest degree of the input generators */
     smat->cd = in->hm[in->ld-1][DEG];
 

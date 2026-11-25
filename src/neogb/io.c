@@ -74,7 +74,7 @@ void sort_terms_ff_8(
   cf8_t tmpcf = 0;
 
   /* generate array of pointers to hm entries */
-  hm_t **phm = (hm_t **)malloc((unsigned long)len * sizeof(hm_t *));
+  hm_t **phm = (hm_t **)gb_malloc((unsigned long)len * sizeof(hm_t *));
   for (i = 0; i < len; ++i) {
     phm[i]  = &hmo[i];
   }
@@ -124,7 +124,7 @@ void sort_terms_ff_16(
   cf16_t tmpcf  = 0;
 
   /* generate array of pointers to hm entries */
-  hm_t **phm = (hm_t **)malloc((unsigned long)len * sizeof(hm_t *));
+  hm_t **phm = (hm_t **)gb_malloc((unsigned long)len * sizeof(hm_t *));
   for (i = 0; i < len; ++i) {
     phm[i]  = &hmo[i];
   }
@@ -174,7 +174,7 @@ void sort_terms_ff_32(
   cf32_t tmpcf  = 0;
 
   /* generate array of pointers to hm entries */
-  hm_t **phm = (hm_t **)malloc((unsigned long)len * sizeof(hm_t *));
+  hm_t **phm = (hm_t **)gb_malloc((unsigned long)len * sizeof(hm_t *));
   for (i = 0; i < len; ++i) {
     phm[i]  = &hmo[i];
   }
@@ -224,7 +224,7 @@ void sort_terms_ff_64(
   cf64_t tmpcf  = 0;
 
   /* generate array of pointers to hm entries */
-  hm_t **phm = (hm_t **)malloc((unsigned long)len * sizeof(hm_t *));
+  hm_t **phm = (hm_t **)gb_malloc((unsigned long)len * sizeof(hm_t *));
   for (i = 0; i < len; ++i) {
     phm[i]  = &hmo[i];
   }
@@ -275,7 +275,7 @@ void sort_terms_qq(
   mpz_init(tmpcf);
 
   /* generate array of pointers to hm entries */
-  hm_t **phm = (hm_t **)malloc((unsigned long)len * sizeof(hm_t *));
+  hm_t **phm = (hm_t **)gb_malloc((unsigned long)len * sizeof(hm_t *));
   for (i = 0; i < len; ++i) {
     phm[i]  = &hmo[i];
   }
@@ -330,7 +330,7 @@ static len_t import_coefficients_gf2x(
     for (i = start; i < stop; ++i) {
         if (invalid_gens == NULL || invalid_gens[i] == 0) {
             hm_t *hm  = bs->hm[ctr];
-            cf8_t *cf = (cf8_t *)malloc((unsigned long)(lens[i]) * sizeof(cf8_t));
+            cf8_t *cf = (cf8_t *)gb_malloc((unsigned long)(lens[i]) * sizeof(cf8_t));
             len_t nt  = 0;
             for (j = 0; j < lens[i]; ++j) {
                 const int32_t c = cfs[off+j];
@@ -404,7 +404,7 @@ void import_input_data(
                 enlarge_hash_table(ht);
                 e  = ht->ev[0]; /* reset e if enlarging */
             }
-            hm  = (hm_t *)malloc(((unsigned long)lens[i]+OFFSET) * sizeof(hm_t));
+            hm  = (hm_t *)gb_malloc(((unsigned long)lens[i]+OFFSET) * sizeof(hm_t));
             bs->hm[ctr] = hm;
 
             hm[COEFFS]  = ctr; /* link to matcf entry */
@@ -434,7 +434,7 @@ void import_input_data(
             cfs_ff  =   (int32_t *)vcfs;
             for (i = start; i < stop; ++i) {
                 if (invalid_gens == NULL || invalid_gens[i] == 0) {
-                    cf8 = (cf8_t *)malloc((unsigned long)(lens[i]) * sizeof(cf8_t));
+                    cf8 = (cf8_t *)gb_malloc((unsigned long)(lens[i]) * sizeof(cf8_t));
                     bs->cf_8[ctr] = cf8;
 
                     for (j = off; j < off+lens[i]; ++j) {
@@ -452,7 +452,7 @@ void import_input_data(
             cfs_ff  =   (int32_t *)vcfs;
             for (i = start; i < stop; ++i) {
                 if (invalid_gens == NULL || invalid_gens[i] == 0) {
-                    cf16    = (cf16_t *)malloc((unsigned long)(lens[i]) * sizeof(cf16_t));
+                    cf16    = (cf16_t *)gb_malloc((unsigned long)(lens[i]) * sizeof(cf16_t));
                     bs->cf_16[ctr] = cf16;
 
                     for (j = off; j < off+lens[i]; ++j) {
@@ -470,7 +470,7 @@ void import_input_data(
             cfs_ff  =   (int32_t *)vcfs;
             for (i = start; i < stop; ++i) {
                 if (invalid_gens == NULL || invalid_gens[i] == 0) {
-                    cf32    = (cf32_t *)malloc((unsigned long)(lens[i]) * sizeof(cf32_t));
+                    cf32    = (cf32_t *)gb_malloc((unsigned long)(lens[i]) * sizeof(cf32_t));
                     bs->cf_32[ctr] = cf32;
 
                     for (j = off; j < off+lens[i]; ++j) {
@@ -488,7 +488,7 @@ void import_input_data(
             cfs_64  =   (int64_t *)vcfs;
             for (i = start; i < stop; ++i) {
                 if (invalid_gens == NULL || invalid_gens[i] == 0) {
-                    cf64    = (cf64_t *)malloc((unsigned long)(lens[i]) * sizeof(cf64_t));
+                    cf64    = (cf64_t *)gb_malloc((unsigned long)(lens[i]) * sizeof(cf64_t));
                     bs->cf_64[ctr] = cf64;
 
                     for (j = off; j < off+lens[i]; ++j) {
@@ -518,7 +518,7 @@ void import_input_data(
                             mpz_lcm(prod_den, prod_den, *(cfs_qq[2*j+1]));
                         }
                     }
-                    cfq = (mpz_t *)malloc((unsigned long)(lens[i]) * sizeof(mpz_t));
+                    cfq = (mpz_t *)gb_malloc((unsigned long)(lens[i]) * sizeof(mpz_t));
 
                     bs->cf_qq[ctr]  = cfq;
 
@@ -882,7 +882,7 @@ int validate_input_data_64(
         *info_levelp    =   0;
     }
     const int ngens     =   *nr_gensp;
-    int *invalid_gens   =   (int *)calloc((unsigned long)ngens, sizeof(int));
+    int *invalid_gens   =   (int *)gb_calloc((unsigned long)ngens, sizeof(int));
     int ctr             =   0;
     long len            =   0;
     if (*field_charp == 0) {

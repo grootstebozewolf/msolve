@@ -47,18 +47,18 @@ trace_t *initialize_trace(
         const md_t * const md
         )
 {
-    trace_t *tr = (trace_t *)calloc(1, sizeof(trace_t));
+    trace_t *tr = (trace_t *)gb_calloc(1, sizeof(trace_t));
 
     tr->std = 8;
     tr->sts = 8;
     tr->ltd = 0;
     tr->lts = 0;
-    tr->td  = calloc((unsigned long)tr->std, sizeof(td_t));
-    tr->ts  = calloc((unsigned long)tr->sts, sizeof(ts_t));
+    tr->td  = gb_calloc((unsigned long)tr->std, sizeof(td_t));
+    tr->ts  = gb_calloc((unsigned long)tr->sts, sizeof(ts_t));
     /* rounds stuff for f4sat */
     tr->rsz = 8;
     tr->rld = 0;
-    tr->rd  = calloc((unsigned long)tr->rsz, sizeof(len_t));
+    tr->rd  = gb_calloc((unsigned long)tr->rsz, sizeof(len_t));
 
     return tr;
 }
@@ -157,7 +157,7 @@ void reduce_basis_no_hash_table_switching(
     exp_t *etmp = bht->ev[0];
     memset(etmp, 0, (unsigned long)(bht->evl) * sizeof(exp_t));
 
-    mat->rr = (hm_t **)malloc((unsigned long)bs->lml * 2 * sizeof(hm_t *));
+    mat->rr = (hm_t **)gb_malloc((unsigned long)bs->lml * 2 * sizeof(hm_t *));
     mat->nr = mat->nc = mat->ncl  = mat->ncr  = 0;
     mat->sz = 2 * bs->lml;
 
@@ -247,14 +247,14 @@ bs_t *f4_trace_application_phase(
     int32_t round, i;
     /* hashes-to-columns map, initialized with length 1, is reallocated
      * in each call when generating matrices for linear algebra */
-    hi_t *hcm = (hi_t *)malloc(sizeof(hi_t));
+    hi_t *hcm = (hi_t *)gb_malloc(sizeof(hi_t));
 
     /* set routines corresponding to prime size */
     reset_trace_function_pointers(fc);
 
     /* matrix holding sparse information generated
      * during symbolic preprocessing */
-    mat_t *mat  = (mat_t *)calloc(1, sizeof(mat_t));
+    mat_t *mat  = (mat_t *)gb_calloc(1, sizeof(mat_t));
 
     /* copy global data as input */
     md_t *st  = copy_meta_data(gst, fc);
@@ -343,12 +343,12 @@ bs_t *f4_trace_application_phase(
      * before interreduction */
     bs->lml  = trace->lml;
     free(bs->lmps);
-    bs->lmps = (bl_t *)calloc((unsigned long)bs->lml,
+    bs->lmps = (bl_t *)gb_calloc((unsigned long)bs->lml,
             sizeof(bl_t));
     memcpy(bs->lmps, trace->lmps,
             (unsigned long)bs->lml * sizeof(bl_t));
     free(bs->lm);
-    bs->lm   = (sdm_t *)calloc((unsigned long)bs->lml,
+    bs->lm   = (sdm_t *)gb_calloc((unsigned long)bs->lml,
             sizeof(sdm_t));
     memcpy(bs->lm, trace->lm,
             (unsigned long)bs->lml * sizeof(sdm_t));
@@ -432,14 +432,14 @@ bs_t *f4sat_trace_application_test_phase(
     int32_t round, ctr, i, j;
     ctr = 0;
     /* hashes-to-columns maps for multipliers in saturation step */
-    hi_t *hcmm  = (hi_t *)malloc(sizeof(hi_t));
+    hi_t *hcmm  = (hi_t *)gb_malloc(sizeof(hi_t));
 
     /* set routines corresponding to prime size */
     reset_trace_function_pointers(fc);
 
     /* matrix holding sparse information generated
      * during symbolic preprocessing */
-    mat_t *mat  = (mat_t *)calloc(1, sizeof(mat_t));
+    mat_t *mat  = (mat_t *)gb_calloc(1, sizeof(mat_t));
 
     /* copy global data as input */
     md_t *st  = copy_meta_data(gst, fc);
@@ -650,12 +650,12 @@ bs_t *f4sat_trace_application_test_phase(
      * before interreduction */
     bs->lml  = trace->lml;
 		free(bs->lmps);
-		bs->lmps = (bl_t *)calloc((unsigned long)bs->lml,
+		bs->lmps = (bl_t *)gb_calloc((unsigned long)bs->lml,
 						sizeof(bl_t));
 		memcpy(bs->lmps, trace->lmps,
 						(unsigned long)bs->lml * sizeof(bl_t));
 		free(bs->lm);
-		bs->lm   = (sdm_t *)calloc((unsigned long)bs->lml,
+		bs->lm   = (sdm_t *)gb_calloc((unsigned long)bs->lml,
 						sizeof(sdm_t));
 		memcpy(bs->lm, trace->lm,
             (unsigned long)bs->lml * sizeof(sdm_t));
@@ -720,11 +720,11 @@ bs_t *f4sat_trace_application_phase(
     int32_t ret   = 0;
 
     /* hashes-to-columns maps for multipliers in saturation step */
-    hi_t *hcmm  = (hi_t *)malloc(sizeof(hi_t));
+    hi_t *hcmm  = (hi_t *)gb_malloc(sizeof(hi_t));
 
     /* matrix holding sparse information generated
      * during symbolic preprocessing */
-    mat_t *mat  = (mat_t *)calloc(1, sizeof(mat_t));
+    mat_t *mat  = (mat_t *)gb_calloc(1, sizeof(mat_t));
 
     /* copy global data as input */
     md_t *st  = copy_meta_data(gst, fc);
@@ -936,12 +936,12 @@ bs_t *f4sat_trace_application_phase(
      * before interreduction */
     bs->lml  = trace->lml;
     free(bs->lmps);
-    bs->lmps = (bl_t *)calloc((unsigned long)bs->lml,
+    bs->lmps = (bl_t *)gb_calloc((unsigned long)bs->lml,
             sizeof(bl_t));
     memcpy(bs->lmps, trace->lmps,
             (unsigned long)bs->lml * sizeof(bl_t));
     free(bs->lm);
-    bs->lm   = (sdm_t *)calloc((unsigned long)bs->lml,
+    bs->lm   = (sdm_t *)gb_calloc((unsigned long)bs->lml,
             sizeof(sdm_t));
     memcpy(bs->lm, trace->lm,
             (unsigned long)bs->lml * sizeof(sdm_t));
@@ -1010,10 +1010,10 @@ bs_t *f4_trace_learning_phase(
     int32_t round, i;
     /* hashes-to-columns map, initialized with length 1, is reallocated
      * in each call when generating matrices for linear algebra */
-    hi_t *hcm = (hi_t *)malloc(sizeof(hi_t));
+    hi_t *hcm = (hi_t *)gb_malloc(sizeof(hi_t));
     /* matrix holding sparse information generated
      * during symbolic preprocessing */
-    mat_t *mat  = (mat_t *)calloc(1, sizeof(mat_t));
+    mat_t *mat  = (mat_t *)gb_calloc(1, sizeof(mat_t));
 
     /* set routines corresponding to prime size */
     reset_trace_function_pointers(fc);
@@ -1099,11 +1099,11 @@ bs_t *f4_trace_learning_phase(
 
     /* store information in trace */
     trace->lml  = bs->lml;
-    trace->lmps = (bl_t *)calloc((unsigned long)trace->lml,
+    trace->lmps = (bl_t *)gb_calloc((unsigned long)trace->lml,
             sizeof(bl_t));
     memcpy(trace->lmps, bs->lmps,
             (unsigned long)trace->lml * sizeof(bl_t));
-    trace->lm   = (sdm_t *)calloc((unsigned long)trace->lml,
+    trace->lm   = (sdm_t *)gb_calloc((unsigned long)trace->lml,
             sizeof(sdm_t));
     memcpy(trace->lm, bs->lm,
             (unsigned long)trace->lml * sizeof(sdm_t));
@@ -1157,7 +1157,7 @@ bs_t *f4_trace_learning_phase(
     free(mat);
 
     /* fix size of trace data */
-    trace->td = realloc(trace->td, (unsigned long)trace->ltd * sizeof(td_t));
+    trace->td = gb_realloc(trace->td, (unsigned long)trace->ltd * sizeof(td_t));
 
     /* Note that we have to add also the numbers of the application counters since
      * for the interreduction of the matrices we use also during the learning phase
@@ -1202,10 +1202,10 @@ bs_t *f4sat_trace_learning_phase_1(
     /* int sat_done    = 0; */
 
     /* hashes-to-columns maps for multipliers in saturation step */
-    hi_t *hcmm  = (hi_t *)malloc(sizeof(hi_t));
+    hi_t *hcmm  = (hi_t *)gb_malloc(sizeof(hi_t));
     /* matrix holding sparse information generated
      * during symbolic preprocessing */
-    mat_t *mat  = (mat_t *)calloc(1, sizeof(mat_t));
+    mat_t *mat  = (mat_t *)gb_calloc(1, sizeof(mat_t));
 
     /* set routines corresponding to prime size */
     reset_trace_function_pointers(fc);
@@ -1219,7 +1219,7 @@ bs_t *f4sat_trace_learning_phase_1(
 
     /* hashes-to-columns map, initialized with length 1, is reallocated
      * in each call when generating matrices for linear algebra */
-    st->hcm = (hi_t *)malloc(sizeof(hi_t));
+    st->hcm = (hi_t *)gb_malloc(sizeof(hi_t));
     st->ps  = ps;
     /* initialize multiplier of first element in sat to be the hash of
      * the all-zeroes exponent vector. */
@@ -1363,7 +1363,7 @@ end_sat_step:
                             trace->lts++;
                             if (trace->lts == trace->sts) {
                                 trace->sts  *=  2;
-                                trace->ts   =   realloc(trace->ts,
+                                trace->ts   =   gb_realloc(trace->ts,
                                         (unsigned long)trace->sts * sizeof(ts_t));
                                 memset(trace->ts+trace->sts/2, 0,
                                         (unsigned long)trace->sts/2 * sizeof(ts_t));
@@ -1430,7 +1430,7 @@ end_sat_step:
 
     /* store leading ideal hashes in trace */
     trace->lml  = bs->lml;
-    trace->lmh  = (hm_t *)calloc((unsigned long)trace->lml,
+    trace->lmh  = (hm_t *)gb_calloc((unsigned long)trace->lml,
             sizeof(hm_t));
     for (i = 0; i < bs->lml; ++i) {
         trace->lmh[i]  = bs->hm[bs->lmps[i]][OFFSET];
@@ -1483,7 +1483,7 @@ end_sat_step:
     free(mat);
 
     /* fix size of trace saturation data */
-    trace->ts = realloc(trace->ts, (unsigned long)trace->lts * sizeof(ts_t));
+    trace->ts = gb_realloc(trace->ts, (unsigned long)trace->lts * sizeof(ts_t));
 
     /* Note that we have to add also the numbers of the application counters since
      * for the interreduction of the matrices we use also during the learning phase
@@ -1526,10 +1526,10 @@ bs_t *f4sat_trace_learning_phase_2(
     /* int sat_done    = 0; */
 
     /* hashes-to-columns maps for multipliers in saturation step */
-    hi_t *hcmm  = (hi_t *)malloc(sizeof(hi_t));
+    hi_t *hcmm  = (hi_t *)gb_malloc(sizeof(hi_t));
     /* matrix holding sparse information generated
      * during symbolic preprocessing */
-    mat_t *mat  = (mat_t *)calloc(1, sizeof(mat_t));
+    mat_t *mat  = (mat_t *)gb_calloc(1, sizeof(mat_t));
 
     ps_t * ps   = initialize_pairset();
     /* copy global data as input */
@@ -1547,7 +1547,7 @@ bs_t *f4sat_trace_learning_phase_2(
     int ts_ctr  = 0;
     /* hashes-to-columns map, initialized with length 1, is reallocated
      * in each call when generating matrices for linear algebra */
-    st->hcm = (hi_t *)malloc(sizeof(hi_t));
+    st->hcm = (hi_t *)gb_malloc(sizeof(hi_t));
     st->ps  = ps;
 
     /* initialize multiplier of first element in sat to be the hash of
@@ -1682,7 +1682,7 @@ bs_t *f4sat_trace_learning_phase_2(
                 /* track round in which kernel computation is not trivial */
                 if (trace->rld == trace->rsz) {
                     trace->rsz  *=  2;
-                    trace->rd = realloc(
+                    trace->rd = gb_realloc(
                             trace->rd,
                             (unsigned long)trace->rsz * sizeof(len_t));
                 }
@@ -1744,11 +1744,11 @@ bs_t *f4sat_trace_learning_phase_2(
 
     /* store information in trace */
     trace->lml  = bs->lml;
-    trace->lmps = (bl_t *)calloc((unsigned long)trace->lml,
+    trace->lmps = (bl_t *)gb_calloc((unsigned long)trace->lml,
             sizeof(bl_t));
     memcpy(trace->lmps, bs->lmps,
             (unsigned long)trace->lml * sizeof(bl_t));
-    trace->lm   = (sdm_t *)calloc((unsigned long)trace->lml,
+    trace->lm   = (sdm_t *)gb_calloc((unsigned long)trace->lml,
             sizeof(sdm_t));
     memcpy(trace->lm, bs->lm,
             (unsigned long)trace->lml * sizeof(sdm_t));
@@ -1801,7 +1801,7 @@ bs_t *f4sat_trace_learning_phase_2(
     free(mat);
 
     /* fix size of trace data */
-    trace->td = realloc(trace->td, (unsigned long)trace->ltd * sizeof(td_t));
+    trace->td = gb_realloc(trace->td, (unsigned long)trace->ltd * sizeof(td_t));
 
     /* Note that we have to add also the numbers of the application counters since
      * for the interreduction of the matrices we use also during the learning phase
@@ -1860,7 +1860,7 @@ int64_t f4_trace_julia(
     ps_t *ps  = initialize_pairset();
 
     /* lucky primes */
-    primes_t *lp  = (primes_t *)calloc(1, sizeof(primes_t));
+    primes_t *lp  = (primes_t *)gb_calloc(1, sizeof(primes_t));
 
     /* initialize stuff */
     md_t *st  = allocate_meta_data();
@@ -1920,7 +1920,7 @@ int64_t f4_trace_julia(
     generate_lucky_primes(lp, bs_qq, st->prime_start, st->nprimes);
 
     /* generate array to store modular bases */
-    bs_t **bs = (bs_t **)calloc((unsigned long)st->nprimes, sizeof(bs_t *));
+    bs_t **bs = (bs_t **)gb_calloc((unsigned long)st->nprimes, sizeof(bs_t *));
 
     /* initialize tracer */
     trace_t *trace  = initialize_trace(bs_qq, st);
@@ -1972,14 +1972,14 @@ bs_t *modular_f4(
     int32_t round, i;
     /* hashes-to-columns map, initialized with length 1, is reallocated
      * in each call when generating matrices for linear algebra */
-    hi_t *hcm = (hi_t *)malloc(sizeof(hi_t));
+    hi_t *hcm = (hi_t *)gb_malloc(sizeof(hi_t));
 
     /* set routines corresponding to prime size */
     reset_function_pointers(fc, gst->laopt);
 
     /* matrix holding sparse information generated
      * during symbolic preprocessing */
-    mat_t *mat  = (mat_t *)calloc(1, sizeof(mat_t));
+    mat_t *mat  = (mat_t *)gb_calloc(1, sizeof(mat_t));
 
     ps_t * ps   = initialize_pairset();
 

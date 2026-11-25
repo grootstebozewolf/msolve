@@ -37,7 +37,7 @@ void get_normal_form_matrix(
     mat_t*mat   = *matp;
 
     /* mul is (0,...,0) */
-    exp_t *mul  = (exp_t *)calloc(bht->nv, sizeof(exp_t));
+    exp_t *mul  = (exp_t *)gb_calloc(bht->nv, sizeof(exp_t));
 
     select_tbr(tbr, mul, start, mat, st, sht, bht, NULL);
     /* mat->nc usually computed inside symbolic preprocessing,
@@ -74,9 +74,9 @@ bs_t *core_nf(
 
     /* matrix holding sparse information generated
      * during symbolic preprocessing */
-    mat_t *mat  = (mat_t *)calloc(1, sizeof(mat_t));
+    mat_t *mat  = (mat_t *)gb_calloc(1, sizeof(mat_t));
 
-    md->hcm = (hi_t *)malloc(sizeof(hi_t));
+    md->hcm = (hi_t *)gb_malloc(sizeof(hi_t));
     md->ht  = initialize_secondary_hash_table(bht, md);
 
     md->nf = 1;
@@ -199,7 +199,7 @@ int64_t export_nf(
 
     /* generate array for storing multiplier for polynomial
      * to be reduced by basis */
-    exp_t *mul  = (exp_t *)calloc(bht->evl, sizeof(exp_t));
+    exp_t *mul  = (exp_t *)gb_calloc(bht->evl, sizeof(exp_t));
     /* compute normal form of last element in tbr */
     tbr = core_nf(tbr, md, mul, bs, &err);
 

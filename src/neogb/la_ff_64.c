@@ -1024,8 +1024,8 @@ static hm_t *dense_row_to_sparse_row_ff_64(
     len_t j = 0;
     const len_t ncols = mat->nc;
 
-    hm_t *row   = (hm_t *)malloc((uint64_t)(k+OFFSET) * sizeof(hm_t));
-    cf64_t *cf  = (cf64_t *)malloc((uint64_t)(k) * sizeof(cf64_t));
+    hm_t *row   = (hm_t *)gb_malloc((uint64_t)(k+OFFSET) * sizeof(hm_t));
+    cf64_t *cf  = (cf64_t *)gb_malloc((uint64_t)(k) * sizeof(cf64_t));
     hm_t *rs    = row + OFFSET;
     for (i = mat->ncl; i < ncols; ++i) {
         if (dr[i] != 0) {
@@ -1130,7 +1130,7 @@ static cf64_t *reduce_dense_row_by_dense_new_pivots_ff_64(
         return NULL;
     }
 
-    cf64_t *row = (cf64_t *)malloc((uint64_t)(ncr-np) * sizeof(cf64_t));
+    cf64_t *row = (cf64_t *)gb_malloc((uint64_t)(ncr-np) * sizeof(cf64_t));
     for (i = np; i < ncr; ++i) {
         row[i-np]  = (cf64_t)dr[i];
     }
@@ -1339,7 +1339,7 @@ static void reduce_dense_rows_by_known_pivots_ff_64(
                 continue;
             }
             if (row == NULL) {
-                row = (cf64_t *)calloc((uint64_t)ncr, sizeof(cf64_t));
+                row = (cf64_t *)gb_calloc((uint64_t)ncr, sizeof(cf64_t));
             }
             row[i-ncl] = (cf64_t)*d;
             *d = 0;

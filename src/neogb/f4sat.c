@@ -117,20 +117,20 @@ static int is_already_saturated(
     const bl_t blo  = bs->lo;
     const bl_t bsc  = bs->constant;
     const len_t lml = bs->lml;
-    sdm_t *lm       = (sdm_t *)malloc((unsigned long)lml * sizeof(sdm_t));
+    sdm_t *lm       = (sdm_t *)gb_malloc((unsigned long)lml * sizeof(sdm_t));
     memcpy(lm, bs->lm, (unsigned long)lml * sizeof(sdm_t));
-    bl_t *lmps      = (bl_t *)malloc((unsigned long)lml * sizeof(bl_t));
+    bl_t *lmps      = (bl_t *)gb_malloc((unsigned long)lml * sizeof(bl_t));
     memcpy(lmps, bs->lmps, (unsigned long)lml * sizeof(bl_t));
-    int8_t *red     = (int8_t *)malloc((unsigned long)bs->sz * sizeof(int8_t));
+    int8_t *red     = (int8_t *)gb_malloc((unsigned long)bs->sz * sizeof(int8_t));
     memcpy(red, bs->red, (unsigned long)bs->sz * sizeof(int8_t));
 
     ps_t *ps = st->ps;
 
-    cf32_t *cf  = (cf32_t *)malloc(
+    cf32_t *cf  = (cf32_t *)gb_malloc(
             (unsigned long)sat->hm[0][LENGTH] * sizeof(cf32_t));
     memcpy(cf, sat->cf_32[sat->hm[0][COEFFS]],
             (unsigned long)sat->hm[0][LENGTH] * sizeof(cf32_t));
-    hm_t *hm  = (hm_t *)malloc(
+    hm_t *hm  = (hm_t *)gb_malloc(
             (unsigned long)(sat->hm[0][LENGTH]+OFFSET) * sizeof(hm_t));
     memcpy(hm, sat->hm[0],
             (unsigned long)(sat->hm[0][LENGTH]+OFFSET) * sizeof(hm_t));
@@ -248,7 +248,7 @@ static inline len_t generate_new_basis_elements(
     ht_t *ht        = *htp;
     const len_t nv  = ht->nv;
     len_t ctr       = 0;
-    exp_t *etmp     = calloc((unsigned long)(nv+1), sizeof(exp_t));
+    exp_t *etmp     = gb_calloc((unsigned long)(nv+1), sizeof(exp_t));
 
     for (i = nv; i > 0; --i) {
         while (ht->esz - ht->eld < oqb_dim-ind[nv-i]) {
@@ -324,17 +324,17 @@ static len_t quotient_basis(
     exp_t ev[nv+1];
     memset(ev, 0, (unsigned long)(nv+1) * sizeof(exp_t));
 
-    len_t *ind      = calloc((unsigned long)nv, sizeof(len_t));
+    len_t *ind      = gb_calloc((unsigned long)nv, sizeof(len_t));
 
-    qb  = (hm_t *)calloc((unsigned long)1, sizeof(hm_t));
+    qb  = (hm_t *)gb_calloc((unsigned long)1, sizeof(hm_t));
     qb[0] = check_lm_divisibility_and_insert_in_hash_table(
                             ev, (*htp), bs);
 
     while (nqbd > 0 && deg < max_deg) {
-        nqb = realloc(nqb, (sum(ind, nv) + nv) * sizeof(hm_t));
+        nqb = gb_realloc(nqb, (sum(ind, nv) + nv) * sizeof(hm_t));
         memset(nqb, 0, (sum(ind, nv) + nv) * sizeof(hm_t));
         nqbd = generate_new_basis_elements(htp, nqb, qb, qbd, ind, bs);
-        qb = realloc(qb, (unsigned long)(qbd + nqbd) * sizeof(hm_t));
+        qb = gb_realloc(qb, (unsigned long)(qbd + nqbd) * sizeof(hm_t));
         /* printf("qb before adding\n");
          * for (len_t ii = 0; ii < qbd; ++ii) {
          *     printf("pos %u --> ", ii);
@@ -462,7 +462,7 @@ sat_restart:
             }
         }
         sat->hm[i][DEG] = deg;
-        sat->cf_32[i]    = (cf32_t *)malloc(
+        sat->cf_32[i]    = (cf32_t *)gb_malloc(
                 (unsigned long)sat->hm[j][LENGTH] * sizeof(cf32_t));
         memcpy(sat->cf_32[i], sat->cf_32[sat->hm[j][COEFFS]],
                 (unsigned long)sat->hm[j][LENGTH] * sizeof(cf32_t));
@@ -538,13 +538,13 @@ int core_f4sat(
 
     /* matrix holding sparse information generated
      * during symbolic preprocessing */
-    mat_t *mat  = (mat_t *)calloc(1, sizeof(mat_t));
+    mat_t *mat  = (mat_t *)gb_calloc(1, sizeof(mat_t));
 
     ps_t *ps = initialize_pairset();
     st->ps   = ps;
-    st->hcm  = (hi_t *)malloc(sizeof(hi_t));
+    st->hcm  = (hi_t *)gb_malloc(sizeof(hi_t));
     /* hashes-to-columns maps for multipliers in saturation step */
-    hi_t *hcmm  = (hi_t *)malloc(sizeof(hi_t));
+    hi_t *hcmm  = (hi_t *)gb_malloc(sizeof(hi_t));
 
     int32_t round, i, j;
 

@@ -34,16 +34,20 @@ double realtime(
     void
     );
 
-static inline uint8_t mod_p_inverse_8(
-        const int16_t val,
-        const int16_t p
+/* Inverse of val modulo the prime p, in [0, p), by the extended Euclidean
+ * algorithm. All intermediate values are bounded by p in absolute value, so
+ * 64 bit arithmetic is exact for every prime p < 2^63. The width specific
+ * versions below share this implementation. */
+static inline int64_t mod_p_inverse_i64(
+        const int64_t val,
+        const int64_t p
         )
 {
-    int16_t a, b, c, d, e, f;
+    int64_t a, b, c, d, e, f;
     a =   p;
     b =   val % p;
     /* if b < 0 we shift correspondingly */
-    b +=  (b >> 15) & p;
+    b +=  (b >> 63) & p;
     c =   1;
     d =   0;
 
@@ -58,9 +62,17 @@ static inline uint8_t mod_p_inverse_8(
     }
 
     /* if d < 0 we shift correspondingly */
-    d +=  (d >> 15) & p;
+    d +=  (d >> 63) & p;
 
     return d;
+}
+
+static inline uint8_t mod_p_inverse_8(
+        const int16_t val,
+        const int16_t p
+        )
+{
+    return (uint8_t)mod_p_inverse_i64(val, p);
 }
 
 static inline uint16_t mod_p_inverse_16(
@@ -68,28 +80,7 @@ static inline uint16_t mod_p_inverse_16(
         const int32_t p
         )
 {
-    int32_t a, b, c, d, e, f;
-    a =   p;
-    b =   val % p;
-    /* if b < 0 we shift correspondingly */
-    b +=  (b >> 31) & p;
-    c =   1;
-    d =   0;
-
-    while (b != 0) {
-        f = b;
-        e = a/f;
-        b = a - e*f;
-        a = f;
-        f = c;
-        c = d - e*f;
-        d = f;
-    }
-
-    /* if d < 0 we shift correspondingly */
-    d +=  (d >> 31) & p;
-
-    return (uint16_t)d;
+    return (uint16_t)mod_p_inverse_i64(val, p);
 }
 
 /* Barrett reduction: returns x mod p for 0 <= x < 2^64, where
@@ -119,28 +110,7 @@ static inline uint32_t mod_p_inverse_32(
         const int64_t p
         )
 {
-    int64_t a, b, c, d, e, f;
-    a =   p;
-    b =   val % p;
-    /* if b < 0 we shift correspondingly */
-    b +=  (b >> 63) & p;
-    c =   1;
-    d =   0;
-
-    while (b != 0) {
-        f = b;
-        e = a/f;
-        b = a - e*f;
-        a = f;
-        f = c;
-        c = d - e*f;
-        d = f;
-    }
-
-    /* if d < 0 we shift correspondingly */
-    d +=  (d >> 63) & p;
-
-    return d;
+    return (uint32_t)mod_p_inverse_i64(val, p);
 }
 
 static inline uint64_t mod_p_inverse_64(
@@ -148,28 +118,7 @@ static inline uint64_t mod_p_inverse_64(
         const int64_t p
         )
 {
-    int64_t a, b, c, d, e, f;
-    a =   p;
-    b =   val % p;
-    /* if b < 0 we shift correspondingly */
-    b +=  (b >> 63) & p;
-    c =   1;
-    d =   0;
-
-    while (b != 0) {
-        f = b;
-        e = a/f;
-        b = a - e*f;
-        a = f;
-        f = c;
-        c = d - e*f;
-        d = f;
-    }
-
-    /* if d < 0 we shift correspondingly */
-    d +=  (d >> 63) & p;
-
-    return (uint64_t)d;
+    return (uint64_t)mod_p_inverse_i64(val, p);
 }
 
 /* a * b mod p for a, b < p < 2^63 */

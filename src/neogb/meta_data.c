@@ -27,7 +27,7 @@ md_t *copy_meta_data(
 		     const uint64_t prime
 		     )
 {
-    md_t *md = (md_t *)malloc(sizeof(md_t));
+    md_t *md = (md_t *)gb_malloc(sizeof(md_t));
     memcpy(md, gmd, sizeof(md_t));
     md->fc  = prime;
     md->min_deg_in_first_deg_fall = gmd->min_deg_in_first_deg_fall;
@@ -77,7 +77,7 @@ md_t *allocate_meta_data(
     void
     )
 {
-    md_t *md  = (md_t *)calloc(1, sizeof(md_t));
+    md_t *md  = (md_t *)gb_calloc(1, sizeof(md_t));
 
     return md;
 }
