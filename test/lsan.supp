@@ -1,0 +1,14 @@
+# LeakSanitizer suppressions for `make check` in the AddressSanitizer build
+# (ASAN_OPTIONS=detect_leaks=1, LSAN_OPTIONS=suppressions=test/lsan.supp).
+# Keep each entry narrow and say why it is here.
+
+# Saturation over the rationals is experimental: the trace phases in
+# src/neogb/modular.c do not release their copies of the basis, the hash
+# tables and the matrices yet, and their results are not used.
+leak:f4sat_trace_
+
+# Unit test programs that return without freeing their fixtures (input
+# data, matrices); the library code they call is checked through the
+# msolve binary in the diff tests.
+leak:build_matrixn_
+leak:line_endings_support
