@@ -32,16 +32,32 @@ ps_t *initialize_pairset(
     return ps;
 }
 
+/* Make room for added more pairs. The size is computed in 64 bits: the
+ * pair set is indexed by len_t, so a size beyond its range cannot be
+ * represented and is reported instead of being truncated, which would
+ * reserve too little and let the caller write past the end of ps->p. */
 static inline void check_enlarge_pairset(
         ps_t *ps,
-        len_t added
+        const uint64_t added
         )
 {
-    if (ps->ld+added >= ps->sz) {
-        ps->sz  = ps->sz*2 > ps->ld+added ? ps->sz*2 : ps->ld+added;
-        ps->p   = gb_realloc(ps->p, (unsigned long)ps->sz * sizeof(spair_t));
+    const uint64_t need = (uint64_t)ps->ld + added;
+    if (need >= ps->sz) {
+        uint64_t sz = 2 * (uint64_t)ps->sz;
+        sz = sz > need ? sz : need;
+        if (sz > (uint64_t)UINT32_MAX) {
+            if (need > (uint64_t)UINT32_MAX) {
+                fprintf(stderr,
+                        "msolve: pair set of %llu pairs exceeds the limit of %u\n",
+                        (unsigned long long)need, UINT32_MAX);
+                exit(GB_EXIT_OUT_OF_MEMORY);
+            }
+            sz = (uint64_t)UINT32_MAX;
+        }
+        ps->sz  = (len_t)sz;
+        ps->p   = gb_realloc(ps->p, (uint64_t)ps->sz * sizeof(spair_t));
         memset(ps->p+ps->ld, 0,
-                (unsigned long)(ps->sz-ps->ld) * sizeof(spair_t));
+                (uint64_t)(ps->sz-ps->ld) * sizeof(spair_t));
     }
 }
 
@@ -598,7 +614,7 @@ static void insert_and_update_spairs(
 
     /* remove useless pairs from pairset, old ones first, then the new
      * ones in the order of the new elements */
-    check_enlarge_pairset(psl, (len_t)soff[npivs]);
+    check_enlarge_pairset(psl, soff[npivs]);
     ps  = psl->p;
     j = 0;
     for (i = 0; i < pl; ++i) {
@@ -707,10 +723,8 @@ static void update_basis_f4(
     rt0 = realtime();
 
     /* compute number of new pairs we need to handle at most */
-    len_t np  = bs->ld * npivs;
-    for (i = 1; i < npivs; ++i) {
-        np  = np + i;
-    }
+    const uint64_t np = (uint64_t)bs->ld * npivs
+        + (uint64_t)npivs * (npivs > 0 ? npivs - 1 : 0) / 2;
     check_enlarge_pairset(ps, np);
 
     insert_and_update_spairs(ps, bs, bht, st, npivs);
@@ -799,10 +813,8 @@ static void update_basis_sba_schreyer(
     rt0 = realtime();
 
     /* compute number of new pairs we need to handle at most */
-    len_t np  = bs->ld * npivs;
-    for (i = 1; i < npivs; ++i) {
-        np  = np + i;
-    }
+    const uint64_t np = (uint64_t)bs->ld * npivs
+        + (uint64_t)npivs * (npivs > 0 ? npivs - 1 : 0) / 2;
     check_enlarge_pairset(ps, np);
 
     for (i = 0; i < npivs; ++i) {
