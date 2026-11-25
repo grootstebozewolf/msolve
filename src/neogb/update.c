@@ -25,10 +25,10 @@ ps_t *initialize_pairset(
         void
         )
 {
-    ps_t *ps  = (ps_t *)malloc(sizeof(ps_t));
+    ps_t *ps  = (ps_t *)gb_malloc(sizeof(ps_t));
     ps->ld  = 0;
     ps->sz  = 192;
-    ps->p = (spair_t *)calloc((unsigned long)ps->sz, sizeof(spair_t));
+    ps->p = (spair_t *)gb_calloc((unsigned long)ps->sz, sizeof(spair_t));
     return ps;
 }
 
@@ -39,7 +39,7 @@ static inline void check_enlarge_pairset(
 {
     if (ps->ld+added >= ps->sz) {
         ps->sz  = ps->sz*2 > ps->ld+added ? ps->sz*2 : ps->ld+added;
-        ps->p   = realloc(ps->p, (unsigned long)ps->sz * sizeof(spair_t));
+        ps->p   = gb_realloc(ps->p, (unsigned long)ps->sz * sizeof(spair_t));
         memset(ps->p+ps->ld, 0,
                 (unsigned long)(ps->sz-ps->ld) * sizeof(spair_t));
     }
@@ -250,11 +250,11 @@ static void insert_and_update_spairs(
 
     /* data of the new elements: the maximal degree up to the k-th one
      * and if it marks old elements as redundant */
-    hm_t *nch     = (hm_t *)malloc((uint64_t)npivs * sizeof(hm_t));
-    deg_t *ndeg   = (deg_t *)malloc((uint64_t)npivs * sizeof(deg_t));
-    int *marks    = (int *)malloc((uint64_t)npivs * sizeof(int));
+    hm_t *nch     = (hm_t *)gb_malloc((uint64_t)npivs * sizeof(hm_t));
+    deg_t *ndeg   = (deg_t *)gb_malloc((uint64_t)npivs * sizeof(deg_t));
+    int *marks    = (int *)gb_malloc((uint64_t)npivs * sizeof(int));
     /* position of the pairs of the k-th new element */
-    uint64_t *off = (uint64_t *)malloc((uint64_t)(npivs+1) * sizeof(uint64_t));
+    uint64_t *off = (uint64_t *)gb_malloc((uint64_t)(npivs+1) * sizeof(uint64_t));
     off[0] = 0;
     for (k = 0; k < npivs; ++k) {
         nch[k]    = bs->hm[bl+k][OFFSET];
@@ -267,7 +267,7 @@ static void insert_and_update_spairs(
 
     /* 1 + the index of the new element marking an old one as redundant
      * first, 0 if it is already redundant, npivs + 1 if it stays */
-    len_t *mby  = (len_t *)malloc((uint64_t)bl * sizeof(len_t));
+    len_t *mby  = (len_t *)gb_malloc((uint64_t)bl * sizeof(len_t));
 #pragma omp parallel for num_threads(nthrds) private(i)
     for (i = 0; i < bl; ++i) {
         mby[i] = bs->red[i] != 0 ? 0 : npivs + 1;
@@ -295,7 +295,7 @@ static void insert_and_update_spairs(
     st->num_redundant += nred;
 
     /* variable masks of the lead monomials */
-    uint64_t *vm  = (uint64_t *)malloc((uint64_t)(bl + npivs) * sizeof(uint64_t));
+    uint64_t *vm  = (uint64_t *)gb_malloc((uint64_t)(bl + npivs) * sizeof(uint64_t));
 #pragma omp parallel for num_threads(nthrds) private(i)
     for (i = 0; i < bl + npivs; ++i) {
         vm[i] = variable_mask(bht->ev[bs->hm[i][OFFSET]], bht);
@@ -313,28 +313,28 @@ static void insert_and_update_spairs(
      * of the hash table. kd and kt store the degree of all pairs with the
      * k-th new element and the total degree of their lcms before the
      * criterion is applied, these are needed for the older pairs. */
-    spair_t *pp = (spair_t *)malloc(np * sizeof(spair_t));
-    deg_t *pdeg = (deg_t *)malloc(np * sizeof(deg_t));
-    deg_t *ptd  = (deg_t *)malloc(np * sizeof(deg_t));
+    spair_t *pp = (spair_t *)gb_malloc(np * sizeof(spair_t));
+    deg_t *pdeg = (deg_t *)gb_malloc(np * sizeof(deg_t));
+    deg_t *ptd  = (deg_t *)gb_malloc(np * sizeof(deg_t));
     const len_t nmax  = bl + npivs - 1;
 #pragma omp parallel num_threads(nthrds) private(i, k)
     {
-    exp_t *e      = (exp_t *)malloc((uint64_t)nmax * evl * sizeof(exp_t));
-    exp_t **ev    = (exp_t **)malloc((uint64_t)nmax * sizeof(exp_t *));
-    hd_t *hd      = (hd_t *)calloc((uint64_t)nmax, sizeof(hd_t));
-    len_t *srt    = (len_t *)malloc((uint64_t)nmax * sizeof(len_t));
-    sdm_t *dsdm   = (sdm_t *)malloc((uint64_t)nmax * sizeof(sdm_t));
+    exp_t *e      = (exp_t *)gb_malloc((uint64_t)nmax * evl * sizeof(exp_t));
+    exp_t **ev    = (exp_t **)gb_malloc((uint64_t)nmax * sizeof(exp_t *));
+    hd_t *hd      = (hd_t *)gb_calloc((uint64_t)nmax, sizeof(hd_t));
+    len_t *srt    = (len_t *)gb_malloc((uint64_t)nmax * sizeof(len_t));
+    sdm_t *dsdm   = (sdm_t *)gb_malloc((uint64_t)nmax * sizeof(sdm_t));
     /* the lcm of the pair of a remaining older element g and the new
      * element n divides the lcm of the pair of h and n iff g has at most
      * the exponents of h in the variables where its exponent is larger than
      * the one of n, these exponents are stored in dx and dp in the range
      * given by doff, the mask of these variables in dm */
-    uint64_t *dm  = (uint64_t *)malloc((uint64_t)nmax * sizeof(uint64_t));
-    len_t *doff   = (len_t *)malloc((uint64_t)(nmax + 1) * sizeof(len_t));
+    uint64_t *dm  = (uint64_t *)gb_malloc((uint64_t)nmax * sizeof(uint64_t));
+    len_t *doff   = (len_t *)gb_malloc((uint64_t)(nmax + 1) * sizeof(len_t));
     len_t dxsz    = nmax;
-    exp_t *dx     = (exp_t *)malloc((uint64_t)dxsz * sizeof(exp_t));
-    len_t *dp     = (len_t *)malloc((uint64_t)dxsz * sizeof(len_t));
-    spair_t *sp   = (spair_t *)malloc((uint64_t)nmax * sizeof(spair_t));
+    exp_t *dx     = (exp_t *)gb_malloc((uint64_t)dxsz * sizeof(exp_t));
+    len_t *dp     = (len_t *)gb_malloc((uint64_t)dxsz * sizeof(len_t));
+    spair_t *sp   = (spair_t *)gb_malloc((uint64_t)nmax * sizeof(spair_t));
     len_t *cnt    = NULL;
     deg_t ccap    = 0;
     ht_t lht      = *bht;
@@ -392,7 +392,7 @@ static void insert_and_update_spairs(
          * their lcms, cnt[d] is the end of the bucket of degree d */
         if (dmax + 2 > ccap) {
             ccap  = dmax + 2;
-            cnt   = realloc(cnt, (uint64_t)ccap * sizeof(len_t));
+            cnt   = gb_realloc(cnt, (uint64_t)ccap * sizeof(len_t));
         }
         memset(cnt, 0, (uint64_t)(dmax + 2) * sizeof(len_t));
         for (i = 0; i < n; ++i) {
@@ -459,8 +459,8 @@ static void insert_and_update_spairs(
                 const exp_t * const ex  = bht->ev[bs->hm[x][OFFSET]];
                 if (doff[nd] + evl > dxsz) {
                     dxsz  = 2 * dxsz > doff[nd] + evl ? 2 * dxsz : doff[nd] + evl;
-                    dx    = realloc(dx, (uint64_t)dxsz * sizeof(exp_t));
-                    dp    = realloc(dp, (uint64_t)dxsz * sizeof(len_t));
+                    dx    = gb_realloc(dx, (uint64_t)dxsz * sizeof(exp_t));
+                    dp    = gb_realloc(dp, (uint64_t)dxsz * sizeof(len_t));
                 }
                 len_t u   = doff[nd];
                 dm[nd]    = 0;
@@ -546,12 +546,12 @@ static void insert_and_update_spairs(
     }
     /* remove the useless new pairs, soff[k] is the number of remaining
      * pairs of the first k new elements */
-    uint64_t *soff  = (uint64_t *)malloc((uint64_t)(npivs+1) * sizeof(uint64_t));
+    uint64_t *soff  = (uint64_t *)gb_malloc((uint64_t)(npivs+1) * sizeof(uint64_t));
     uint64_t nrem   = 0;
     for (j = 0; j < np; ++j) {
         nrem  += pp[j].deg >= 0;
     }
-    spair_t *pq     = (spair_t *)malloc((nrem + nfp) * sizeof(spair_t));
+    spair_t *pq     = (spair_t *)gb_malloc((nrem + nfp) * sizeof(spair_t));
     /* the lcms of the remaining pairs are inserted in bht */
     while (bht->esz - bht->eld < nrem + nfp) {
         enlarge_hash_table(bht);

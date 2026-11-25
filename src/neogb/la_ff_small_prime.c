@@ -127,8 +127,8 @@ static hm_t *LA_SMALL(trace_reduce_dense_row_by_known_pivots_sparse)(
         return NULL;
     }
 
-    hm_t *row   = (hm_t *)malloc((uint64_t)(k+OFFSET) * sizeof(hm_t));
-    LA_CF_T *cf  = (LA_CF_T *)malloc((uint64_t)(k) * sizeof(LA_CF_T));
+    hm_t *row   = (hm_t *)gb_malloc((uint64_t)(k+OFFSET) * sizeof(hm_t));
+    LA_CF_T *cf  = (LA_CF_T *)gb_malloc((uint64_t)(k) * sizeof(LA_CF_T));
     j = 0;
     hm_t *rs = row + OFFSET;
     for (i = ncl; i < ncols; ++i) {
@@ -231,7 +231,7 @@ static LA_CF_T *LA_SMALL(reduce_dense_row_by_all_pivots)(
         return NULL;
     }
 
-    LA_CF_T *row = (LA_CF_T *)calloc((uint64_t)(ncols-np), sizeof(LA_CF_T));
+    LA_CF_T *row = (LA_CF_T *)gb_calloc((uint64_t)(ncols-np), sizeof(LA_CF_T));
     for (i = np; i < ncols; ++i) {
         if (dr[i] != 0) {
             dr[i] = (int64_t)barrett_reduce((uint64_t)dr[i], mod, bm);
@@ -356,7 +356,7 @@ static LA_CF_T *LA_SMALL(reduce_dense_row_by_dense_new_pivots)(
     const len_t sc          = *pc;
 
     /* t[i] is the entry of dr in column sc+i */
-    LA_DENSE_T *t = (LA_DENSE_T *)malloc(
+    LA_DENSE_T *t = (LA_DENSE_T *)gb_malloc(
             (uint64_t)(ncr-sc) * sizeof(LA_DENSE_T));
     for (i = sc; i < ncr; ++i) {
         t[i-sc] = dr[i] != 0 ?
@@ -392,7 +392,7 @@ static LA_CF_T *LA_SMALL(reduce_dense_row_by_dense_new_pivots)(
         return NULL;
     }
 
-    LA_CF_T *row = (LA_CF_T *)malloc((uint64_t)(ncr-np) * sizeof(LA_CF_T));
+    LA_CF_T *row = (LA_CF_T *)gb_malloc((uint64_t)(ncr-np) * sizeof(LA_CF_T));
     for (i = np; i < ncr; ++i) {
         row[i-np]  = (LA_CF_T)dr[i];
     }
@@ -448,7 +448,7 @@ static LA_CF_T *LA_SMALL(reduce_dense_row_by_dense_new_pivots)(
         return NULL;
     }
 
-    LA_CF_T *row = (LA_CF_T *)calloc((uint64_t)(ncr-np), sizeof(LA_CF_T));
+    LA_CF_T *row = (LA_CF_T *)gb_calloc((uint64_t)(ncr-np), sizeof(LA_CF_T));
     for (i = np; i < ncr; ++i) {
         if (dr[i] != 0) {
             dr[i] = (int64_t)barrett_reduce((uint64_t)dr[i], mod, bm);

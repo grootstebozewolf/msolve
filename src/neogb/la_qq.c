@@ -97,9 +97,9 @@ static hm_t *reduce_dense_row_by_known_pivots_sparse_only_ab_qq(
         }
         if (pivs[i] == NULL) {
             if (np == -1) {
-                row = (hm_t *)malloc(
+                row = (hm_t *)gb_malloc(
                         (unsigned long)(ncols-i+OFFSET) * sizeof(hm_t));
-                cf  = (mpz_t *)malloc(
+                cf  = (mpz_t *)gb_malloc(
                         (unsigned long)(ncols-i) * sizeof(mpz_t));
                 np  = i;
             }
@@ -153,8 +153,8 @@ static hm_t *reduce_dense_row_by_known_pivots_sparse_only_ab_qq(
             row[rlen+OFFSET] = i;
             rlen++;
         }
-        row     = realloc(row, (unsigned long)(rlen+OFFSET) * sizeof(hm_t));
-        cf      = realloc(cf, (unsigned long)rlen * sizeof(mpz_t));
+        row     = gb_realloc(row, (unsigned long)(rlen+OFFSET) * sizeof(hm_t));
+        cf      = gb_realloc(cf, (unsigned long)rlen * sizeof(mpz_t));
         row[COEFFS]   = tmp_pos;
         row[PRELOOP]  = rlen % UNROLL;
         row[LENGTH]   = rlen;
@@ -193,9 +193,9 @@ static hm_t *reduce_dense_row_by_known_pivots_sparse_ab_first_qq(
         }
         if (pivs[i] == NULL) {
             if (np == -1) {
-                row = (hm_t *)malloc(
+                row = (hm_t *)gb_malloc(
                         (unsigned long)(ncols-i+OFFSET) * sizeof(hm_t));
-                cf  = (mpz_t *)malloc(
+                cf  = (mpz_t *)gb_malloc(
                         (unsigned long)(ncols-i) * sizeof(mpz_t));
                 np  = i;
             }
@@ -244,8 +244,8 @@ static hm_t *reduce_dense_row_by_known_pivots_sparse_ab_first_qq(
         }
     }
     if (rlen != 0) {
-        row     = realloc(row, (unsigned long)(rlen+OFFSET) * sizeof(hm_t));
-        cf      = realloc(cf, (unsigned long)rlen * sizeof(mpz_t));
+        row     = gb_realloc(row, (unsigned long)(rlen+OFFSET) * sizeof(hm_t));
+        cf      = gb_realloc(cf, (unsigned long)rlen * sizeof(mpz_t));
         row[COEFFS]   = tmp_pos;
         row[PRELOOP]  = rlen % UNROLL;
         row[LENGTH]   = rlen;
@@ -285,9 +285,9 @@ static hm_t *reduce_dense_row_by_known_pivots_sparse_qq(
         }
         if (pivs[i] == NULL) {
             if (np == -1) {
-                row = (hm_t *)malloc(
+                row = (hm_t *)gb_malloc(
                         (unsigned long)(ncols-i+OFFSET) * sizeof(hm_t));
-                cf  = (mpz_t *)malloc(
+                cf  = (mpz_t *)gb_malloc(
                         (unsigned long)(ncols-i) * sizeof(mpz_t));
                 np  = i;
             }
@@ -336,8 +336,8 @@ static hm_t *reduce_dense_row_by_known_pivots_sparse_qq(
         }
     }
     if (rlen != 0) {
-        row     = realloc(row, (unsigned long)(rlen+OFFSET) * sizeof(hm_t));
-        cf      = realloc(cf, (unsigned long)rlen * sizeof(mpz_t));
+        row     = gb_realloc(row, (unsigned long)(rlen+OFFSET) * sizeof(hm_t));
+        cf      = gb_realloc(cf, (unsigned long)rlen * sizeof(mpz_t));
         row[COEFFS]   = tmp_pos;
         row[PRELOOP]  = rlen % UNROLL;
         row[LENGTH]   = rlen;
@@ -366,18 +366,18 @@ static void exact_sparse_reduced_echelon_form_ab_first_qq(
     hm_t cf_array_pos;
 
     /* we fill in all known lead terms in pivs */
-    hm_t **pivs   = (hm_t **)calloc((unsigned long)ncols, sizeof(hm_t *));
+    hm_t **pivs   = (hm_t **)gb_calloc((unsigned long)ncols, sizeof(hm_t *));
     memcpy(pivs, mat->rr, (unsigned long)mat->nru * sizeof(hm_t *));
 
     /* unkown pivot rows we have to reduce with the known pivots first */
     hm_t **upivs  = mat->tr;
-    mpz_t *dr  = (mpz_t *)malloc(
+    mpz_t *dr  = (mpz_t *)gb_malloc(
             (unsigned long)ncols * sizeof(mpz_t));
     for (i = 0; i < ncols; ++i) {
         mpz_init(dr[i]);
     }
 
-    mat->cf_ab_qq[nru-1]  = (mpz_t *)malloc(
+    mat->cf_ab_qq[nru-1]  = (mpz_t *)gb_malloc(
             (unsigned long)pivs[nru-1][LENGTH] * sizeof(mpz_t));
     for (i = 0 ; i < pivs[nru-1][LENGTH]; ++i) {
         mpz_init_set(mat->cf_ab_qq[nru-1][i], bs->cf_qq[pivs[nru-1][COEFFS]][i]);
@@ -413,7 +413,7 @@ static void exact_sparse_reduced_echelon_form_ab_first_qq(
     }
 
     const len_t drlen = st->nthrds * ncols;
-    dr  = realloc(dr,
+    dr  = gb_realloc(dr,
             (unsigned long)drlen * sizeof(mpz_t));
     for (i = ncols; i < drlen; ++i) {
         mpz_init(dr[i]);
@@ -509,8 +509,8 @@ static void exact_sparse_reduced_echelon_form_ab_first_qq(
     for (i = ncols; i < drlen; ++i) {
         mpz_clear(dr[i]);
     }
-    dr      = realloc(dr, (unsigned long)ncols * sizeof(mpz_t));
-    mat->tr = realloc(mat->tr, (unsigned long)ncr * sizeof(hm_t *));
+    dr      = gb_realloc(dr, (unsigned long)ncols * sizeof(mpz_t));
+    mat->tr = gb_realloc(mat->tr, (unsigned long)ncr * sizeof(hm_t *));
 
     /* interreduce new pivots */
     for (i = 0; i < ncr; ++i) {
@@ -560,7 +560,7 @@ static void exact_sparse_reduced_echelon_form_ab_first_qq(
     free(dr);
     dr  = NULL;
 
-    mat->tr = realloc(mat->tr, (unsigned long)npivs * sizeof(hi_t *));
+    mat->tr = gb_realloc(mat->tr, (unsigned long)npivs * sizeof(hi_t *));
     mat->np = mat->nr = mat->sz = npivs;
 }
 
@@ -579,14 +579,14 @@ static void exact_sparse_reduced_echelon_form_qq(
     const len_t ncl   = mat->ncl;
 
     /* we fill in all known lead terms in pivs */
-    hm_t **pivs   = (hm_t **)calloc((unsigned long)ncols, sizeof(hm_t *));
+    hm_t **pivs   = (hm_t **)gb_calloc((unsigned long)ncols, sizeof(hm_t *));
     memcpy(pivs, mat->rr, (unsigned long)mat->nru * sizeof(hm_t *));
 
     /* unkown pivot rows we have to reduce with the known pivots first */
     hm_t **upivs  = mat->tr;
 
     const len_t drlen = st->nthrds * ncols;
-    mpz_t *dr  = (mpz_t *)malloc(
+    mpz_t *dr  = (mpz_t *)gb_malloc(
             (unsigned long)drlen * sizeof(mpz_t));
     for (i = 0; i < drlen; ++i) {
         mpz_init(dr[i]);
@@ -678,8 +678,8 @@ static void exact_sparse_reduced_echelon_form_qq(
     for (i = ncols; i < drlen; ++i) {
         mpz_clear(dr[i]);
     }
-    dr      = realloc(dr, (unsigned long)ncols * sizeof(mpz_t));
-    mat->tr = realloc(mat->tr, (unsigned long)ncr * sizeof(hm_t *));
+    dr      = gb_realloc(dr, (unsigned long)ncols * sizeof(mpz_t));
+    mat->tr = gb_realloc(mat->tr, (unsigned long)ncr * sizeof(hm_t *));
 
     /* interreduce new pivots */
     mpz_t *cfs;
@@ -731,7 +731,7 @@ static void exact_sparse_reduced_echelon_form_qq(
     free(dr);
     dr  = NULL;
 
-    mat->tr = realloc(mat->tr, (unsigned long)npivs * sizeof(hi_t *));
+    mat->tr = gb_realloc(mat->tr, (unsigned long)npivs * sizeof(hi_t *));
     mat->np = mat->nr = mat->sz = npivs;
 }
 
@@ -749,9 +749,9 @@ static void exact_sparse_linear_algebra_ab_first_qq(
 
     /* allocate temporary storage space for sparse
      * coefficients of new pivot rows */
-    mat->cf_qq  = realloc(mat->cf_qq,
+    mat->cf_qq  = gb_realloc(mat->cf_qq,
             (unsigned long)mat->nrl * sizeof(mpz_t *));
-    mat->cf_ab_qq  = realloc(mat->cf_ab_qq,
+    mat->cf_ab_qq  = gb_realloc(mat->cf_ab_qq,
             (unsigned long)mat->nru * sizeof(mpz_t *));
     exact_sparse_reduced_echelon_form_ab_first_qq(mat, bs, st);
 
@@ -781,7 +781,7 @@ static void exact_sparse_linear_algebra_qq(
 
     /* allocate temporary storage space for sparse
      * coefficients of new pivot rows */
-    mat->cf_qq  = realloc(mat->cf_qq,
+    mat->cf_qq  = gb_realloc(mat->cf_qq,
             (unsigned long)mat->nrl * sizeof(mpz_t *));
     exact_sparse_reduced_echelon_form_qq(mat, bs, st);
 
@@ -814,12 +814,12 @@ static void interreduce_matrix_rows_qq(
     if (st->info_level > 1) {
         fprintf(VERBSTREAM, "                        ");
     }
-    mat->tr = realloc(mat->tr, (unsigned long)ncols * sizeof(hm_t *));
+    mat->tr = gb_realloc(mat->tr, (unsigned long)ncols * sizeof(hm_t *));
 
-    mat->cf_qq  = realloc(mat->cf_qq,
+    mat->cf_qq  = gb_realloc(mat->cf_qq,
             (unsigned long)ncols * sizeof(mpz_t *));
     memset(mat->cf_qq, 0, (unsigned long)ncols * sizeof(mpz_t *));
-    hm_t **pivs = (hm_t **)calloc((unsigned long)ncols, sizeof(hm_t *));
+    hm_t **pivs = (hm_t **)gb_calloc((unsigned long)ncols, sizeof(hm_t *));
     /* copy coefficient arrays from basis in matrix, maybe
      * several rows need the same coefficient arrays, but we
      * cannot share them here. */
@@ -827,7 +827,7 @@ static void interreduce_matrix_rows_qq(
         pivs[mat->rr[i][OFFSET]]  = mat->rr[i];
     }
 
-    mpz_t *dr = (mpz_t *)malloc((unsigned long)ncols * sizeof(mpz_t));
+    mpz_t *dr = (mpz_t *)gb_malloc((unsigned long)ncols * sizeof(mpz_t));
     for (i = 0; i < ncols; ++i) {
         mpz_init(dr[i]);
     }

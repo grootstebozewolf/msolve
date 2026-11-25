@@ -59,7 +59,7 @@ static uint64_t *gf2_alloc_aligned(
         const uint64_t nw
         )
 {
-    *raw = calloc(nw * sizeof(uint64_t) + 64, 1);
+    *raw = gb_calloc(nw * sizeof(uint64_t) + 64, 1);
     return (uint64_t *)(((uintptr_t)*raw + 63) & ~(uintptr_t)63);
 }
 
@@ -200,7 +200,7 @@ static inline cf8_t *gf2_ones(
         const len_t len
         )
 {
-    cf8_t *cf = (cf8_t *)malloc((uint64_t)(len > 0 ? len : 1) * sizeof(cf8_t));
+    cf8_t *cf = (cf8_t *)gb_malloc((uint64_t)(len > 0 ? len : 1) * sizeof(cf8_t));
     memset(cf, 1, (uint64_t)len * sizeof(cf8_t));
     return cf;
 }
@@ -241,7 +241,7 @@ static hm_t *reduce_dense_row_by_pivots_gf2(
         return NULL;
     }
 
-    hm_t *row = (hm_t *)malloc((uint64_t)(k+OFFSET) * sizeof(hm_t));
+    hm_t *row = (hm_t *)gb_malloc((uint64_t)(k+OFFSET) * sizeof(hm_t));
     hm_t *rs  = row + OFFSET;
     j = 0;
     for (i = gf2_next_bit(dr, np, ncols); i < ncols;
@@ -320,7 +320,7 @@ static void extract_rows_from_group_gf2(
     }
     for (j = 0; j < ng; ++j) {
         rcs[j] = rcl[j] > 0 ?
-            (hm_t *)malloc((uint64_t)rcl[j] * sizeof(hm_t)) : NULL;
+            (hm_t *)gb_malloc((uint64_t)rcl[j] * sizeof(hm_t)) : NULL;
         rcl[j] = 0;
     }
     for (j = ncl; j < ncols; ++j) {
@@ -375,7 +375,7 @@ static void interreduce_dense_matrix_gf2(
     const len_t bs = 64;
     const len_t nw = (ncr + 63) >> 6;
 
-    len_t *pc = (len_t *)malloc((uint64_t)ncr * sizeof(len_t));
+    len_t *pc = (len_t *)gb_malloc((uint64_t)ncr * sizeof(len_t));
     for (i = 0; i < ncr; ++i) {
         if (dm[i] != NULL) {
             pc[n++] = i;
@@ -430,7 +430,7 @@ static hm_t *dense_to_sparse_row_gf2(
     for (j = sc >> 6; j < nw; ++j) {
         k += (len_t)__builtin_popcountll(d[j]);
     }
-    hm_t *row = (hm_t *)malloc((uint64_t)(k+OFFSET) * sizeof(hm_t));
+    hm_t *row = (hm_t *)gb_malloc((uint64_t)(k+OFFSET) * sizeof(hm_t));
     if (hdr != NULL) {
         memcpy(row, hdr, OFFSET * sizeof(hm_t));
     } else {
@@ -479,15 +479,15 @@ static int interreduce_new_pivots_dense_gf2(
     if (n < 2 || 64 * nnz < dsz) {
         return 0;
     }
-    uint64_t **dm = (uint64_t **)calloc((uint64_t)ncr, sizeof(uint64_t *));
-    hm_t *hdr     = (hm_t *)malloc((uint64_t)ncr * OFFSET * sizeof(hm_t));
+    uint64_t **dm = (uint64_t **)gb_calloc((uint64_t)ncr, sizeof(uint64_t *));
+    hm_t *hdr     = (hm_t *)gb_malloc((uint64_t)ncr * OFFSET * sizeof(hm_t));
     for (i = 0; i < ncr; ++i) {
         hm_t *row = pivs[ncl+i];
         if (row == NULL) {
             continue;
         }
         memcpy(hdr + (uint64_t)i * OFFSET, row, OFFSET * sizeof(hm_t));
-        dm[i] = (uint64_t *)calloc((uint64_t)nw, sizeof(uint64_t));
+        dm[i] = (uint64_t *)gb_calloc((uint64_t)nw, sizeof(uint64_t));
         const hm_t * const ds = row + OFFSET;
         for (j = 0; j < row[LENGTH]; ++j) {
             const len_t c = ds[j] - ncl;
@@ -565,7 +565,7 @@ static void exact_sparse_reduced_echelon_form_gf2(
     const int final       = st->in_final_reduction_step;
 
     /* we fill in all known lead terms in pivs */
-    hm_t **pivs   = (hm_t **)calloc((uint64_t)ncols, sizeof(hm_t *));
+    hm_t **pivs   = (hm_t **)gb_calloc((uint64_t)ncols, sizeof(hm_t *));
     hm_t *kpivs   = reducer_rows_to_block(mat);
     if (mat->nru > 0) {
         memcpy(pivs, mat->rr, (uint64_t)mat->nru * sizeof(hm_t *));
@@ -584,8 +584,8 @@ static void exact_sparse_reduced_echelon_form_gf2(
     void **drm_raw  = NULL;
     uint64_t **drm  = NULL;
     if (gsz > 0) {
-        drm_raw = (void **)calloc((uint64_t)nthrds, sizeof(void *));
-        drm     = (uint64_t **)calloc((uint64_t)nthrds, sizeof(uint64_t *));
+        drm_raw = (void **)gb_calloc((uint64_t)nthrds, sizeof(void *));
+        drm     = (uint64_t **)gb_calloc((uint64_t)nthrds, sizeof(uint64_t *));
     }
     const len_t gl  = gsz > 0 ? gsz : 1;
     const len_t ngr = (nrl + gl - 1) / gl;
@@ -691,7 +691,7 @@ static void exact_sparse_reduced_echelon_form_gf2(
 
     len_t npivs = 0; /* number of new pivots */
 
-    mat->tr = realloc(mat->tr, (uint64_t)ncr * sizeof(hm_t *));
+    mat->tr = gb_realloc(mat->tr, (uint64_t)ncr * sizeof(hm_t *));
 
     /* interreduce new pivots */
     if (!interreduce_new_pivots_dense_gf2(mat, pivs, nthrds, &npivs)) {
@@ -710,7 +710,7 @@ static void exact_sparse_reduced_echelon_form_gf2(
             }
         }
     }
-    mat->tr = realloc(mat->tr, (uint64_t)npivs * sizeof(hi_t *));
+    mat->tr = gb_realloc(mat->tr, (uint64_t)npivs * sizeof(hi_t *));
     st->np = mat->np = mat->nr = mat->sz = npivs;
 
     free(pivs);
@@ -737,13 +737,13 @@ static uint64_t **sparse_AB_CD_linear_algebra_gf2(
     const int32_t nthrds  = st->nthrds;
 
     /* we fill in all known lead terms in pivs */
-    hm_t **pivs   = (hm_t **)calloc((uint64_t)ncols, sizeof(hm_t *));
+    hm_t **pivs   = (hm_t **)gb_calloc((uint64_t)ncols, sizeof(hm_t *));
     hm_t *kpivs   = reducer_rows_to_block(mat);
     memcpy(pivs, mat->rr, (uint64_t)mat->nru * sizeof(hm_t *));
 
     hm_t **upivs  = mat->tr;
 
-    uint64_t **drs = (uint64_t **)calloc((uint64_t)nrl, sizeof(uint64_t *));
+    uint64_t **drs = (uint64_t **)gb_calloc((uint64_t)nrl, sizeof(uint64_t *));
 
     const len_t gsz = rows_per_group_gf2(nrl, nthrds);
     const len_t gl  = gsz > 0 ? gsz : 1;
@@ -782,7 +782,7 @@ static uint64_t **sparse_AB_CD_linear_algebra_gf2(
             for (len_t r = 0; r < l; ++r) {
                 uint64_t *row = NULL;
                 if (rcl[r] > 0) {
-                    row = (uint64_t *)calloc((uint64_t)nwr, sizeof(uint64_t));
+                    row = (uint64_t *)gb_calloc((uint64_t)nwr, sizeof(uint64_t));
                     for (j = 0; j < rcl[r]; ++j) {
                         const len_t c = rcs[r][j] - ncl;
                         row[c >> 6] |= (uint64_t)1 << (c & 63);
@@ -808,7 +808,7 @@ static uint64_t **sparse_AB_CD_linear_algebra_gf2(
             for (len_t c = gf2_next_bit(drl, ncl, ncols); c < ncols;
                     c = gf2_next_bit(drl, c+1, ncols)) {
                 if (row == NULL) {
-                    row = (uint64_t *)calloc((uint64_t)nwr, sizeof(uint64_t));
+                    row = (uint64_t *)gb_calloc((uint64_t)nwr, sizeof(uint64_t));
                 }
                 row[(c-ncl) >> 6] |= (uint64_t)1 << ((c-ncl) & 63);
                 drl[c >> 6] ^= (uint64_t)1 << (c & 63);
@@ -851,8 +851,8 @@ static uint64_t **exact_dense_linear_algebra_gf2(
     const len_t nrows = mat->np;
     const len_t ncr   = mat->ncr;
 
-    uint64_t **nps = (uint64_t **)calloc((uint64_t)ncr, sizeof(uint64_t *));
-    uint64_t **tbr = (uint64_t **)calloc((uint64_t)nrows, sizeof(uint64_t *));
+    uint64_t **nps = (uint64_t **)gb_calloc((uint64_t)ncr, sizeof(uint64_t *));
+    uint64_t **tbr = (uint64_t **)gb_calloc((uint64_t)nrows, sizeof(uint64_t *));
 
     /* rows with a new lead term become pivots directly, the others have
      * to be reduced */
@@ -909,8 +909,8 @@ static void convert_to_sparse_matrix_rows_gf2(
     const len_t ncr = mat->ncr;
     const len_t ncl = mat->ncl;
 
-    mat->tr   = realloc(mat->tr, (uint64_t)mat->np * sizeof(hm_t *));
-    mat->cf_8 = realloc(mat->cf_8, (uint64_t)mat->np * sizeof(cf8_t *));
+    mat->tr   = gb_realloc(mat->tr, (uint64_t)mat->np * sizeof(hm_t *));
+    mat->cf_8 = gb_realloc(mat->cf_8, (uint64_t)mat->np * sizeof(cf8_t *));
 
     for (i = ncr; i > 0; --i) {
         if (dm[i-1] != NULL) {
@@ -958,7 +958,7 @@ static void exact_sparse_linear_algebra_gf2(
         }
         st->np = mat->nr = mat->sz = mat->np;
     } else {
-        mat->cf_8 = realloc(mat->cf_8, (uint64_t)mat->nr * sizeof(cf8_t *));
+        mat->cf_8 = gb_realloc(mat->cf_8, (uint64_t)mat->nr * sizeof(cf8_t *));
         memset(mat->cf_8, 0, (uint64_t)mat->nr * sizeof(cf8_t *));
         exact_sparse_reduced_echelon_form_gf2(mat, st);
     }
@@ -993,11 +993,11 @@ static void interreduce_matrix_rows_gf2(
         fprintf(VERBSTREAM, "                          ");
     }
 
-    mat->tr = realloc(mat->tr, (uint64_t)ncols * sizeof(hm_t *));
+    mat->tr = gb_realloc(mat->tr, (uint64_t)ncols * sizeof(hm_t *));
 
-    mat->cf_8 = realloc(mat->cf_8, (uint64_t)ncols * sizeof(cf8_t *));
+    mat->cf_8 = gb_realloc(mat->cf_8, (uint64_t)ncols * sizeof(cf8_t *));
     memset(mat->cf_8, 0, (uint64_t)ncols * sizeof(cf8_t *));
-    hm_t **pivs = (hm_t **)calloc((uint64_t)ncols, sizeof(hm_t *));
+    hm_t **pivs = (hm_t **)gb_calloc((uint64_t)ncols, sizeof(hm_t *));
     for (i = 0; i < nrows; ++i) {
         pivs[mat->rr[i][OFFSET]]  = mat->rr[i];
     }

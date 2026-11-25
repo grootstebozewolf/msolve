@@ -163,7 +163,7 @@ static void intermediate_reduce_basis(
     exp_t etmp[bht->evl];
     memset(etmp, 0, (unsigned long)(bht->evl) * sizeof(exp_t));
 
-    mat->rr = (hm_t **)malloc((unsigned long)bs->lml * 2 * sizeof(hm_t *));
+    mat->rr = (hm_t **)gb_malloc((unsigned long)bs->lml * 2 * sizeof(hm_t *));
     mat->nr = 0;
     mat->sz = 2 * bs->lml;
 
@@ -284,7 +284,7 @@ static void reduce_basis(
 
     md->in_final_reduction_step = 1;
 
-    mat->rr = (hm_t **)malloc((unsigned long)bs->lml * 2 * sizeof(hm_t *));
+    mat->rr = (hm_t **)gb_malloc((unsigned long)bs->lml * 2 * sizeof(hm_t *));
     mat->nr = 0;
     mat->sz = 2 * bs->lml;
 
@@ -368,7 +368,7 @@ static int32_t initialize_f4(
 
     md      = copy_meta_data(gmd, fc);
     md->fc  = fc;
-    md->hcm = (hi_t *)malloc(sizeof(hi_t));
+    md->hcm = (hi_t *)gb_malloc(sizeof(hi_t));
     md->mat_nterms = 0;
     md->max_mat_nterms = 0;
 
@@ -391,7 +391,7 @@ static int32_t initialize_f4(
 
     /* matrix holding sparse information generated
        during symbolic preprocessing */
-    mat = (mat_t *)calloc(1, sizeof(mat_t));
+    mat = (mat_t *)gb_calloc(1, sizeof(mat_t));
 
     if (md->trace_level != APPLY_TRACER) {
         /* pair set */
@@ -609,12 +609,12 @@ static void process_redundant_elements(
          * before interreduction */
         bs->lml  = md->tr->lml;
         free(bs->lmps);
-        bs->lmps = (bl_t *)calloc((unsigned long)bs->lml,
+        bs->lmps = (bl_t *)gb_calloc((unsigned long)bs->lml,
                 sizeof(bl_t));
         memcpy(bs->lmps, md->tr->lmps,
                 (unsigned long)bs->lml * sizeof(bl_t));
         free(bs->lm);
-        bs->lm   = (sdm_t *)calloc((unsigned long)bs->lml,
+        bs->lm   = (sdm_t *)gb_calloc((unsigned long)bs->lml,
                 sizeof(sdm_t));
         memcpy(bs->lm, md->tr->lm,
                 (unsigned long)bs->lml * sizeof(sdm_t));
@@ -623,11 +623,11 @@ static void process_redundant_elements(
     if (md->trace_level == LEARN_TRACER) {
         /* store information in trace */
         md->tr->lml  = bs->lml;
-        md->tr->lmps = (bl_t *)calloc((unsigned long)md->tr->lml,
+        md->tr->lmps = (bl_t *)gb_calloc((unsigned long)md->tr->lml,
                 sizeof(bl_t));
         memcpy(md->tr->lmps, bs->lmps,
                 (unsigned long)md->tr->lml * sizeof(bl_t));
-        md->tr->lm   = (sdm_t *)calloc((unsigned long)md->tr->lml,
+        md->tr->lm   = (sdm_t *)gb_calloc((unsigned long)md->tr->lml,
                 sizeof(sdm_t));
         memcpy(md->tr->lm, bs->lm,
                 (unsigned long)md->tr->lml * sizeof(sdm_t));
@@ -657,10 +657,10 @@ static void reduce_final_basis(
         /* add all non-redundant basis elements as matrix rows, their
          * terms are inserted into sht in parallel (multiplied by 1) */
         const len_t lml = bs->lml;
-        mat->tr = (hm_t **)malloc((unsigned long)lml * sizeof(hm_t *));
-        hm_t **polys  = (hm_t **)malloc((unsigned long)lml * sizeof(hm_t *));
-        val_t *hs     = (val_t *)calloc((unsigned long)lml, sizeof(val_t));
-        exp_t *ems    = (exp_t *)calloc(
+        mat->tr = (hm_t **)gb_malloc((unsigned long)lml * sizeof(hm_t *));
+        hm_t **polys  = (hm_t **)gb_malloc((unsigned long)lml * sizeof(hm_t *));
+        val_t *hs     = (val_t *)gb_calloc((unsigned long)lml, sizeof(val_t));
+        exp_t *ems    = (exp_t *)gb_calloc(
                 (unsigned long)lml * bht->evl, sizeof(exp_t));
         for (i = 0; i < lml; ++i) {
             polys[i] = bs->hm[bs->lmps[i]];
@@ -919,7 +919,7 @@ static int copy_basis_to_other_order(
     const len_t nv         = dht->nv;
     const int to_drl       = dht->ebl == 0;
 
-    exp_t *e = (exp_t *)malloc((unsigned long)dht->evl * sizeof(exp_t));
+    exp_t *e = (exp_t *)gb_malloc((unsigned long)dht->evl * sizeof(exp_t));
 
     check_enlarge_basis(dst, n, md);
 
@@ -929,7 +929,7 @@ static int copy_basis_to_other_order(
         while (!lookup && len >= dht->esz - dht->eld) {
             enlarge_hash_table(dht);
         }
-        hm_t *d     = (hm_t *)malloc(((unsigned long)len+OFFSET) * sizeof(hm_t));
+        hm_t *d     = (hm_t *)gb_malloc(((unsigned long)len+OFFSET) * sizeof(hm_t));
         d[COEFFS]   = i;
         d[PRELOOP]  = len % UNROLL;
         d[LENGTH]   = len;
@@ -954,7 +954,7 @@ static int copy_basis_to_other_order(
         switch (md->ff_bits) {
             case 0:
                 /* the source may also be a basis over a prime field */
-                dst->cf_qq[i] = (mpz_t *)malloc((unsigned long)len * sizeof(mpz_t));
+                dst->cf_qq[i] = (mpz_t *)gb_malloc((unsigned long)len * sizeof(mpz_t));
                 for (j = 0; j < len; ++j) {
                     if (src->cf_qq != NULL) {
                         mpz_init_set(dst->cf_qq[i][j], src->cf_qq[s[COEFFS]][j]);
@@ -971,25 +971,25 @@ static int copy_basis_to_other_order(
                 sort_terms_qq(&(dst->cf_qq[i]), &(dst->hm[i]), dht);
                 break;
             case 8:
-                dst->cf_8[i] = (cf8_t *)malloc((unsigned long)len * sizeof(cf8_t));
+                dst->cf_8[i] = (cf8_t *)gb_malloc((unsigned long)len * sizeof(cf8_t));
                 memcpy(dst->cf_8[i], src->cf_8[s[COEFFS]],
                         (unsigned long)len * sizeof(cf8_t));
                 sort_terms_ff_8(&(dst->cf_8[i]), &(dst->hm[i]), dht);
                 break;
             case 16:
-                dst->cf_16[i] = (cf16_t *)malloc((unsigned long)len * sizeof(cf16_t));
+                dst->cf_16[i] = (cf16_t *)gb_malloc((unsigned long)len * sizeof(cf16_t));
                 memcpy(dst->cf_16[i], src->cf_16[s[COEFFS]],
                         (unsigned long)len * sizeof(cf16_t));
                 sort_terms_ff_16(&(dst->cf_16[i]), &(dst->hm[i]), dht);
                 break;
             case 32:
-                dst->cf_32[i] = (cf32_t *)malloc((unsigned long)len * sizeof(cf32_t));
+                dst->cf_32[i] = (cf32_t *)gb_malloc((unsigned long)len * sizeof(cf32_t));
                 memcpy(dst->cf_32[i], src->cf_32[s[COEFFS]],
                         (unsigned long)len * sizeof(cf32_t));
                 sort_terms_ff_32(&(dst->cf_32[i]), &(dst->hm[i]), dht);
                 break;
             case 64:
-                dst->cf_64[i] = (cf64_t *)malloc((unsigned long)len * sizeof(cf64_t));
+                dst->cf_64[i] = (cf64_t *)gb_malloc((unsigned long)len * sizeof(cf64_t));
                 memcpy(dst->cf_64[i], src->cf_64[s[COEFFS]],
                         (unsigned long)len * sizeof(cf64_t));
                 sort_terms_ff_64(&(dst->cf_64[i]), &(dst->hm[i]), dht);
@@ -1047,7 +1047,7 @@ static md_t *initialize_drl_meta_data(
         const md_t * const gmd
         )
 {
-    md_t *md = (md_t *)malloc(sizeof(md_t));
+    md_t *md = (md_t *)gb_malloc(sizeof(md_t));
     memcpy(md, gmd, sizeof(md_t));
 
     md->nev         = 0;
@@ -1110,7 +1110,7 @@ static bs_t *initialize_drl_basis(
 {
     len_t i;
 
-    bl_t *idx = (bl_t *)malloc((unsigned long)gbs->ld * sizeof(bl_t));
+    bl_t *idx = (bl_t *)gb_malloc((unsigned long)gbs->ld * sizeof(bl_t));
     for (i = 0; i < gbs->ld; ++i) {
         idx[i] = i;
     }

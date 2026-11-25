@@ -22,6 +22,7 @@
 #ifndef GB_TRACE_H
 #define GB_TRACE_H
 
+#include "alloc.h"
 #include "data.h"
 
 trace_t *initialize_trace(
@@ -104,7 +105,7 @@ static inline void generate_lucky_primes(
 
     lp->old =   lp->ld;
     lp->ld  +=  nr_new_primes;
-    lp->p   =   (uint32_t *)realloc(lp->p, (unsigned long)(lp->ld) * sizeof(uint32_t));
+    lp->p   =   (uint32_t *)gb_realloc(lp->p, (unsigned long)(lp->ld) * sizeof(uint32_t));
 
     mpz_t last_prime;
     mpz_init(last_prime);

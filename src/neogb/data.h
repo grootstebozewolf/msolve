@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "alloc.h"
 #include <gmp.h>
 #include <string.h> /* for memset et al. */
 #include <limits.h>

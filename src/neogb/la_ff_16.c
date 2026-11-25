@@ -395,8 +395,8 @@ static hm_t *reduce_dense_row_by_known_pivots_sparse_ff_16(
         return NULL;
     }
 
-    hm_t *row   = (hm_t *)malloc((uint64_t)(k+OFFSET) * sizeof(hm_t));
-    cf16_t *cf  = (cf16_t *)malloc((uint64_t)(k) * sizeof(cf16_t));
+    hm_t *row   = (hm_t *)gb_malloc((uint64_t)(k+OFFSET) * sizeof(hm_t));
+    cf16_t *cf  = (cf16_t *)gb_malloc((uint64_t)(k) * sizeof(cf16_t));
     j = 0;
     hm_t *rs = row + OFFSET;
     for (i = ncl; i < ncols; ++i) {

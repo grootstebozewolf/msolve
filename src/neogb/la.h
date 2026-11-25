@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "alloc.h"
 #include <assert.h>
 #include <math.h>
 #ifdef _OPENMP
@@ -172,9 +173,9 @@ static inline void write_updated_block_to_sparse_format_directly(mat_gb_block_t 
   bf_t tmp;
 
   free(bl->len);
-  bl->len = (nelts_t *)calloc((meta->bs+1), sizeof(nelts_t));
-  bl->pos = realloc(bl->pos, meta->bs*meta->bs * sizeof(bs_t));
-  bl->val= realloc(bl->val, meta->bs*meta->bs * sizeof(cf_t));
+  bl->len = (nelts_t *)gb_calloc((meta->bs+1), sizeof(nelts_t));
+  bl->pos = gb_realloc(bl->pos, meta->bs*meta->bs * sizeof(bs_t));
+  bl->val= gb_realloc(bl->val, meta->bs*meta->bs * sizeof(cf_t));
 
   for (i = 0; i < lr; ++i) {
     bl->len[i+1]  = bl->len[i];
@@ -599,7 +600,7 @@ static inline void update_single_block_dense_rev_order(mat_gb_block_t *mat,
   /* block to be updated */
   mat_gb_block_t *ubl  = mat+idx;
   /* row to be updated in dense format */
-  bf_t *dr  = (bf_t *)malloc(meta->bs * sizeof(bf_t));
+  bf_t *dr  = (bf_t *)gb_malloc(meta->bs * sizeof(bf_t));
 
   mat_gb_block_t *nbl = generate_mat_gb_block(meta, ubl->nr);
 
@@ -640,7 +641,7 @@ static inline void update_single_block_dense(mat_gb_block_t *mat,
   /* block to be updated */
   mat_gb_block_t *ubl  = mat+idx;
   /* row to be updated in dense format */
-  bf_t *dr  = (bf_t *)malloc(meta->bs * sizeof(bf_t));
+  bf_t *dr  = (bf_t *)gb_malloc(meta->bs * sizeof(bf_t));
 
   mat_gb_block_t *nbl = generate_mat_gb_block(meta, ubl->nr);
 
@@ -667,7 +668,7 @@ static inline void update_single_block_sparse_2(mat_gb_block_t *mat,
   /* block to be updated */
   mat_gb_block_t *ubl  = mat+idx;
   /* row to be updated in dense format */
-  bf_t *db  = (bf_t *)malloc((meta->bs*meta->bs) * sizeof(bf_t));
+  bf_t *db  = (bf_t *)gb_malloc((meta->bs*meta->bs) * sizeof(bf_t));
 
   load_dense_block_from_sparse(db, ubl, meta);
 
@@ -688,7 +689,7 @@ static inline void update_single_block_sparse_rev_order(mat_gb_block_t *mat,
   /* block to be updated */
   mat_gb_block_t *ubl  = mat+idx;
   /* row to be updated in dense format */
-  bf_t *dr  = (bf_t *)malloc(meta->bs * sizeof(bf_t));
+  bf_t *dr  = (bf_t *)gb_malloc(meta->bs * sizeof(bf_t));
 
   mat_gb_block_t *nbl = generate_mat_gb_block(meta, ubl->nr);
 
@@ -718,7 +719,7 @@ static inline void update_single_block_sparse(mat_gb_block_t *mat,
   /* block to be updated */
   mat_gb_block_t *ubl  = mat+idx;
   /* row to be updated in dense format */
-  bf_t *dr  = (bf_t *)malloc(meta->bs * sizeof(bf_t));
+  bf_t *dr  = (bf_t *)gb_malloc(meta->bs * sizeof(bf_t));
 
   mat_gb_block_t *nbl = generate_mat_gb_block(meta, ubl->nr);
 
@@ -795,9 +796,9 @@ static inline void update_block(mat_gb_block_t **bl, const bf_t *db,
   bf_t tmp;
 
   mat_gb_block_t *blin  = *bl;
-  blin->len     = realloc(blin->len, (meta->bs+1) * sizeof(nelts_t));
-  blin->pos     = realloc(blin->pos, bs_square * sizeof(bs_t));
-  blin->val     = realloc(blin->val, bs_square * sizeof(cf_t));
+  blin->len     = gb_realloc(blin->len, (meta->bs+1) * sizeof(nelts_t));
+  blin->pos     = gb_realloc(blin->pos, bs_square * sizeof(bs_t));
+  blin->val     = gb_realloc(blin->val, bs_square * sizeof(cf_t));
   blin->len[0]  = 0;
 
   for (i=0; i<meta->bs; ++i) {
@@ -819,8 +820,8 @@ static inline void update_block(mat_gb_block_t **bl, const bf_t *db,
     free(blin->val);
     blin->val = NULL;
   } else {
-    blin->pos = realloc(blin->pos, blin->len[meta->bs] * sizeof(bs_t));
-    blin->val = realloc(blin->val, blin->len[meta->bs] * sizeof(cf_t));
+    blin->pos = gb_realloc(blin->pos, blin->len[meta->bs] * sizeof(bs_t));
+    blin->val = gb_realloc(blin->val, blin->len[meta->bs] * sizeof(cf_t));
   }
 }
 
@@ -835,7 +836,7 @@ static inline void sparse_update_lower_block_by_upper_block_2(mat_gb_block_t *l,
    *     rbi, cbi, meta->ncb, meta->nrb_CD, shift); */
   mat_gb_block_t *ubl  = l + rbi*meta->ncb+cbi;
   /* row to be updated in dense format */
-  bf_t *db  = (bf_t *)malloc((meta->bs*meta->bs) * sizeof(bf_t));
+  bf_t *db  = (bf_t *)gb_malloc((meta->bs*meta->bs) * sizeof(bf_t));
 
   load_dense_block_from_sparse(db, ubl, meta);
 
@@ -853,7 +854,7 @@ static inline void update_upper_blocks(const mat_gb_block_t *mul,
   nelts_t i;
 
   /* row to be updated in dense format */
-  bf_t *dr  = (bf_t *)malloc(meta->bs * sizeof(bf_t));
+  bf_t *dr  = (bf_t *)gb_malloc(meta->bs * sizeof(bf_t));
 
   mat_gb_block_t *nbl = generate_mat_gb_block(meta, ubl->nr);
 
@@ -895,7 +896,7 @@ static inline void sparse_update_lower_block_by_upper_block_rev_order(
   /* block to be updated */
   mat_gb_block_t *ubl  = l + rbi*meta->ncb+cbi;
   /* row to be updated in dense format */
-  bf_t *dr  = (bf_t *)malloc(meta->bs * sizeof(bf_t));
+  bf_t *dr  = (bf_t *)gb_malloc(meta->bs * sizeof(bf_t));
 
   mat_gb_block_t *nbl = generate_mat_gb_block(meta, ubl->nr);
 
@@ -932,7 +933,7 @@ static inline void sparse_update_lower_block_by_upper_block_at_once(mat_gb_block
   const mat_gb_block_t *mbl  = l + rbi*meta->ncb+shift;
   mat_gb_block_t *ubl  = l + rbi*meta->ncb+cbi;
   /* row to be updated in dense format */
-  bf_t *db  = (bf_t *)malloc(meta->bs * ubl->nr * sizeof(bf_t));
+  bf_t *db  = (bf_t *)gb_malloc(meta->bs * ubl->nr * sizeof(bf_t));
 
   load_dense_block_for_update(db, ubl, meta);
 
@@ -968,7 +969,7 @@ static inline void sparse_update_lower_block_by_upper_block(mat_gb_block_t *l,
   /* block to be updated */
   mat_gb_block_t *ubl  = l + rbi*meta->ncb+cbi;
   /* row to be updated in dense format */
-  bf_t *dr  = (bf_t *)malloc(meta->bs * sizeof(bf_t));
+  bf_t *dr  = (bf_t *)gb_malloc(meta->bs * sizeof(bf_t));
 
   mat_gb_block_t *nbl = generate_mat_gb_block(meta, ubl->nr);
 
@@ -1072,7 +1073,7 @@ static inline void sparse_update_first_block_by_upper_block(mat_gb_block_t *l,
   /* block to be updated */
   mat_gb_block_t *ubl  = l + rbi*meta->ncb+shift;
   /* row to be updated in dense format */
-  bf_t *dr  = (bf_t *)malloc(meta->bs * sizeof(bf_t));
+  bf_t *dr  = (bf_t *)gb_malloc(meta->bs * sizeof(bf_t));
 
   mat_gb_block_t *nbl = generate_mat_gb_block(meta, ubl->nr);
 
@@ -1173,7 +1174,7 @@ static inline void update_lower_by_unreduced_upper_row_block(mat_gb_block_t *l,
         {
           /* allocate memory for a dense block:
            * always the block to be updated */
-          bf_t *db  = (bf_t *)malloc(meta->bs * meta->bs * sizeof(bf_t));
+          bf_t *db  = (bf_t *)gb_malloc(meta->bs * meta->bs * sizeof(bf_t));
 
           /* multiply with all previously updated blocks from A multiplied by C */
           for (nelts_t j = 0; j < meta->ncb_AC; ++j) {

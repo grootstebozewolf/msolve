@@ -72,11 +72,11 @@ static void select_all_spairs(
     /* statistics */
     st->num_pairsred  +=  nps;
     /* list for generators */
-    gens  = (len_t *)malloc(2 * (unsigned long)nps * sizeof(len_t));
+    gens  = (len_t *)gb_malloc(2 * (unsigned long)nps * sizeof(len_t));
     /* preset matrix meta data */
-    mat->rr       = (hm_t **)malloc(2 * (unsigned long)nps * sizeof(hm_t *));
+    mat->rr       = (hm_t **)gb_malloc(2 * (unsigned long)nps * sizeof(hm_t *));
     hm_t **rrows  = mat->rr;
-    mat->tr       = (hm_t **)malloc(2 * (unsigned long)nps * sizeof(hm_t *));
+    mat->tr       = (hm_t **)gb_malloc(2 * (unsigned long)nps * sizeof(hm_t *));
     hm_t **trows  = mat->tr;
     mat->sz = 2 * nps;
     mat->nc = mat->ncl = mat->ncr = 0;
@@ -174,7 +174,7 @@ static void select_all_spairs(
     /* printf("nc %u | nr %u || %u\n", mat->nc, mat->nr, sht->eld); */
     /* printf("%u pairs in degree %u\n", ctr, md); */
     /* fix rows to be reduced */
-    mat->tr = realloc(mat->tr, (unsigned long)(mat->nr - mat->nc) * sizeof(hm_t *));
+    mat->tr = gb_realloc(mat->tr, (unsigned long)(mat->nr - mat->nc) * sizeof(hm_t *));
 
     st->num_rowsred +=  mat->nr - mat->nc;
     st->current_deg =   etmp[DEG];
@@ -294,11 +294,11 @@ static int32_t select_spairs_by_minimal_degree(
     /* statistics */
     md->num_pairsred  +=  nps;
     /* list for generators */
-    gens  = (len_t *)malloc(2 * (unsigned long)nps * sizeof(len_t));
+    gens  = (len_t *)gb_malloc(2 * (unsigned long)nps * sizeof(len_t));
     /* preset matrix meta data */
-    mat->rr       = (hm_t **)malloc(2 * (unsigned long)nps * sizeof(hm_t *));
+    mat->rr       = (hm_t **)gb_malloc(2 * (unsigned long)nps * sizeof(hm_t *));
     hm_t **rrows  = mat->rr;
-    mat->tr       = (hm_t **)malloc(2 * (unsigned long)nps * sizeof(hm_t *));
+    mat->tr       = (hm_t **)gb_malloc(2 * (unsigned long)nps * sizeof(hm_t *));
     hm_t **trows  = mat->tr;
     mat->sz = 2 * nps;
     mat->nc = mat->ncl = mat->ncr = 0;
@@ -308,15 +308,15 @@ static int32_t select_spairs_by_minimal_degree(
      * and then generate all rows at once, see
      * multiplied_polys_to_matrix_rows() */
     const len_t mnr = 2 * nps;
-    hm_t **rows   = (hm_t **)malloc((unsigned long)mnr * sizeof(hm_t *));
-    hm_t **polys  = (hm_t **)malloc((unsigned long)mnr * sizeof(hm_t *));
-    val_t *hs     = (val_t *)malloc((unsigned long)mnr * sizeof(val_t));
-    exp_t *ems    = (exp_t *)malloc((unsigned long)mnr * evl * sizeof(exp_t));
-    len_t *bis    = (len_t *)malloc((unsigned long)mnr * sizeof(len_t));
-    hi_t *mhs     = (hi_t *)malloc((unsigned long)mnr * sizeof(hi_t));
+    hm_t **rows   = (hm_t **)gb_malloc((unsigned long)mnr * sizeof(hm_t *));
+    hm_t **polys  = (hm_t **)gb_malloc((unsigned long)mnr * sizeof(hm_t *));
+    val_t *hs     = (val_t *)gb_malloc((unsigned long)mnr * sizeof(val_t));
+    exp_t *ems    = (exp_t *)gb_malloc((unsigned long)mnr * evl * sizeof(exp_t));
+    len_t *bis    = (len_t *)gb_malloc((unsigned long)mnr * sizeof(len_t));
+    hi_t *mhs     = (hi_t *)gb_malloc((unsigned long)mnr * sizeof(hi_t));
     /* is the row the first one of its lcm, i.e. a reducer row? 2 marks
      * the rows of field pairs */
-    int8_t *isrr  = (int8_t *)malloc((unsigned long)mnr * sizeof(int8_t));
+    int8_t *isrr  = (int8_t *)gb_malloc((unsigned long)mnr * sizeof(int8_t));
     len_t nr      = 0;
 
     i = 0;
@@ -416,7 +416,7 @@ static int32_t select_spairs_by_minimal_degree(
     free(isrr);
     /* printf("%u pairs in degree %u\n", ctr, mdeg); */
     /* fix rows to be reduced */
-    mat->tr = realloc(mat->tr, (unsigned long)(mat->nr - mat->nc) * sizeof(hm_t *));
+    mat->tr = gb_realloc(mat->tr, (unsigned long)(mat->nr - mat->nc) * sizeof(hm_t *));
 
     md->num_rowsred +=  mat->nr - mat->nc;
     md->current_deg =   mdeg;
@@ -465,7 +465,7 @@ static void select_saturation(
 
 
     /* preset matrix meta data */
-    mat->rr = (hm_t **)malloc(100 * sizeof(hm_t *));
+    mat->rr = (hm_t **)gb_malloc(100 * sizeof(hm_t *));
     mat->tr = NULL;
 
     mat->sz = 100;
@@ -512,8 +512,8 @@ static void select_tbr(
     len_t ntr = 0;
 
     /* preset matrix meta data */
-    mat->rr       = (hm_t **)malloc(100 * sizeof(hm_t *));
-    mat->tr       = (hm_t **)malloc((unsigned long)tbr->ld * sizeof(hm_t *));
+    mat->rr       = (hm_t **)gb_malloc(100 * sizeof(hm_t *));
+    mat->tr       = (hm_t **)gb_malloc((unsigned long)tbr->ld * sizeof(hm_t *));
     hm_t **trows  = mat->tr;
 
     mat->sz = 100;
@@ -596,7 +596,7 @@ static len_t add_reducer_index_node(
 
     if (ri->nnd == ri->snd) {
         ri->snd = 2 * ri->snd;
-        ri->nd  = realloc(ri->nd, (unsigned long)ri->snd * sizeof(red_node_t));
+        ri->nd  = gb_realloc(ri->nd, (unsigned long)ri->snd * sizeof(red_node_t));
     }
     const len_t n = ri->nnd++;
     sdm_t cm = ri->sdm[lo];
@@ -634,24 +634,24 @@ static void initialize_reducer_index(
     len_t i;
 
     const len_t n = bs->lml;
-    ri->sdm = (sdm_t *)malloc((unsigned long)n * sizeof(sdm_t));
-    ri->pos = (len_t *)malloc((unsigned long)n * sizeof(len_t));
+    ri->sdm = (sdm_t *)gb_malloc((unsigned long)n * sizeof(sdm_t));
+    ri->pos = (len_t *)gb_malloc((unsigned long)n * sizeof(len_t));
     ri->len = NULL;
     ri->ev  = NULL;
     ri->nnd = 0;
     ri->snd = 64;
-    ri->nd  = (red_node_t *)malloc((unsigned long)ri->snd * sizeof(red_node_t));
+    ri->nd  = (red_node_t *)gb_malloc((unsigned long)ri->snd * sizeof(red_node_t));
     if (n == 0) {
         return;
     }
-    uint64_t *tmp = (uint64_t *)malloc((unsigned long)n * sizeof(uint64_t));
+    uint64_t *tmp = (uint64_t *)gb_malloc((unsigned long)n * sizeof(uint64_t));
     for (i = 0; i < n; ++i) {
         tmp[i] = ((uint64_t)bs->lm[i] << 32) | i;
     }
     qsort(tmp, (unsigned long)n, sizeof(uint64_t), cmp_uint64);
     const len_t evl = bs->ht->evl;
-    ri->len = (len_t *)malloc((unsigned long)n * sizeof(len_t));
-    ri->ev  = (exp_t *)malloc((unsigned long)n * evl * sizeof(exp_t));
+    ri->len = (len_t *)gb_malloc((unsigned long)n * sizeof(len_t));
+    ri->ev  = (exp_t *)gb_malloc((unsigned long)n * evl * sizeof(exp_t));
     for (i = 0; i < n; ++i) {
         ri->sdm[i]      = (sdm_t)(tmp[i] >> 32);
         ri->pos[i]      = (len_t)(tmp[i] & 0xFFFFFFFF);
@@ -780,7 +780,7 @@ static void symbolic_preprocessing(
     const hl_t oesld  = sht->eld;
     while (mat->sz <= nrr + oesld) {
         mat->sz *=  2;
-        mat->rr =   realloc(mat->rr, (unsigned long)mat->sz * sizeof(hm_t *));
+        mat->rr =   gb_realloc(mat->rr, (unsigned long)mat->sz * sizeof(hm_t *));
         if (mat->rr == NULL) {
             fprintf(ERRSTREAM, "Allocating memory for matrix failed,\n");
             fprintf(ERRSTREAM, "segmentation fault will follow.\n");
@@ -813,11 +813,11 @@ static void symbolic_preprocessing(
         const hl_t hi = sht->eld;
         if (sz < hi - lo) {
             sz    = hi - lo;
-            cols  = realloc(cols, (unsigned long)sz * sizeof(hm_t));
-            red   = realloc(red, (unsigned long)sz * sizeof(len_t));
-            polys = realloc(polys, (unsigned long)sz * sizeof(hm_t *));
-            hs    = realloc(hs, (unsigned long)sz * sizeof(val_t));
-            ems   = realloc(ems, (unsigned long)sz * evl * sizeof(exp_t));
+            cols  = gb_realloc(cols, (unsigned long)sz * sizeof(hm_t));
+            red   = gb_realloc(red, (unsigned long)sz * sizeof(len_t));
+            polys = gb_realloc(polys, (unsigned long)sz * sizeof(hm_t *));
+            hs    = gb_realloc(hs, (unsigned long)sz * sizeof(val_t));
+            ems   = gb_realloc(ems, (unsigned long)sz * evl * sizeof(exp_t));
         }
         len_t nc = 0;
         for (i = lo; i < hi; ++i) {
@@ -855,7 +855,7 @@ static void symbolic_preprocessing(
         }
         while (mat->sz <= nrr + nr) {
             mat->sz *=  2;
-            mat->rr =   realloc(mat->rr, (unsigned long)mat->sz * sizeof(hm_t *));
+            mat->rr =   gb_realloc(mat->rr, (unsigned long)mat->sz * sizeof(hm_t *));
             if (mat->rr == NULL) {
                 fprintf(ERRSTREAM, "Allocating memory for matrix failed,\n");
                 fprintf(ERRSTREAM, "segmentation fault will follow.\n");
@@ -864,7 +864,7 @@ static void symbolic_preprocessing(
         /* track trace information ? */
         hi_t *mhs = NULL;
         if (md->trace_level == LEARN_TRACER) {
-            mhs = (hi_t *)malloc((unsigned long)nr * sizeof(hi_t));
+            mhs = (hi_t *)gb_malloc((unsigned long)nr * sizeof(hi_t));
             for (j = 0; j < nr; ++j) {
                 if (bht->eld == bht->esz-1) {
                     enlarge_hash_table(bht);
@@ -897,7 +897,7 @@ static void symbolic_preprocessing(
     free(hs);
     free(ems);
     /* realloc to real size */
-    mat->rr   =   realloc(mat->rr, (unsigned long)nrr * sizeof(hm_t *));
+    mat->rr   =   gb_realloc(mat->rr, (unsigned long)nrr * sizeof(hm_t *));
     mat->nr   +=  nrr - onrr;
     mat->nrl  =   mat->nr - nrr;
     mat->nru  =   nrr;
@@ -930,13 +930,13 @@ static void initialize_trace_cache(
 {
     len_t i;
 
-    tr->tc  = (tc_t **)calloc((unsigned long)tr->ltd, sizeof(tc_t *));
+    tr->tc  = (tc_t **)gb_calloc((unsigned long)tr->ltd, sizeof(tc_t *));
     /* the basis grows by the new leading monomials of each round */
     tr->bsz = md->ngens;
     for (i = 0; i < tr->ltd; ++i) {
         tr->bsz += tr->td[i].nlm;
     }
-    tr->bsp   = (hm_t **)calloc((unsigned long)tr->bsz, sizeof(hm_t *));
+    tr->bsp   = (hm_t **)gb_calloc((unsigned long)tr->bsz, sizeof(hm_t *));
     tr->tceld = 0;
 }
 
@@ -962,7 +962,7 @@ static void start_trace_cache(
         return;
     }
     md->tcoff = 0;
-    md->tcok  = (int8_t *)calloc((unsigned long)tr->bsz, sizeof(int8_t));
+    md->tcok  = (int8_t *)gb_calloc((unsigned long)tr->bsz, sizeof(int8_t));
 }
 
 /* Checks if the basis elements of the rows ri[0], ri[2], ... have the
@@ -987,7 +987,7 @@ static int basis_supports_agree_with_trace(
             const len_t len      = b[LENGTH];
             hm_t *r              = tr->bsp[bi];
             if (r == NULL) {
-                r = (hm_t *)malloc((unsigned long)(len+2) * sizeof(hm_t));
+                r = (hm_t *)gb_malloc((unsigned long)(len+2) * sizeof(hm_t));
                 r[0] = len;
                 r[1] = b[COEFFS];
                 memcpy(r+2, b+OFFSET, (unsigned long)len * sizeof(hm_t));
@@ -1148,15 +1148,15 @@ static void matrix_from_trace_cache(
     const len_t nru = tc->nru;
     const len_t nr  = tc->nru + tc->nrl;
 
-    mat->rr   = (hm_t **)malloc((unsigned long)nru * sizeof(hm_t *));
-    mat->tr   = (hm_t **)malloc((unsigned long)tc->nrl * sizeof(hm_t *));
-    mat->rba  = (rba_t **)malloc((unsigned long)tc->nrl * sizeof(rba_t *));
+    mat->rr   = (hm_t **)gb_malloc((unsigned long)nru * sizeof(hm_t *));
+    mat->tr   = (hm_t **)gb_malloc((unsigned long)tc->nrl * sizeof(hm_t *));
+    mat->rba  = (rba_t **)gb_malloc((unsigned long)tc->nrl * sizeof(rba_t *));
     /* the reducer rows are handed over to the linear algebra in one block */
     for (i = 0; i < nru; ++i) {
         read_varint(tc->rows + tc->ro[i], &len);
         sz += len+OFFSET;
     }
-    mat->rrb  = (hm_t *)malloc(sz * sizeof(hm_t));
+    mat->rrb  = (hm_t *)gb_malloc(sz * sizeof(hm_t));
     sz = 0;
     for (i = 0; i < nru; ++i) {
         read_varint(tc->rows + tc->ro[i], &len);
@@ -1165,7 +1165,7 @@ static void matrix_from_trace_cache(
     }
     for (i = 0; i < tc->nrl; ++i) {
         read_varint(tc->rows + tc->ro[nru+i], &len);
-        mat->tr[i]  = (hm_t *)malloc((unsigned long)(len+OFFSET) * sizeof(hm_t));
+        mat->tr[i]  = (hm_t *)gb_malloc((unsigned long)(len+OFFSET) * sizeof(hm_t));
         mat->rba[i] = td->rba[i];
     }
 #pragma omp parallel for num_threads(nthrds) private(i) schedule(dynamic, 64)
@@ -1196,21 +1196,21 @@ static void store_matrix_in_trace_cache(
     const len_t nru = mat->nru;
     const len_t nr  = mat->nru + mat->nrl;
 
-    tc_t *tc  = (tc_t *)malloc(sizeof(tc_t));
-    tc->ro    = (unsigned long *)malloc((unsigned long)(nr+1)
+    tc_t *tc  = (tc_t *)gb_malloc(sizeof(tc_t));
+    tc->ro    = (unsigned long *)gb_malloc((unsigned long)(nr+1)
             * sizeof(unsigned long));
     tc->ro[0] = 0;
     for (i = 0; i < nr; ++i) {
         tc->ro[i+1] = tc->ro[i] + compressed_row_size(
                 i < nru ? mat->rr[i] : mat->tr[i-nru]);
     }
-    tc->rows  = (uint8_t *)malloc(tc->ro[nr]);
+    tc->rows  = (uint8_t *)gb_malloc(tc->ro[nr]);
     for (i = 0; i < nr; ++i) {
         compress_row(tc->rows + tc->ro[i],
                 i < nru ? mat->rr[i] : mat->tr[i-nru]);
     }
     const len_t evl = sht->evl;
-    tc->ev  = (exp_t *)malloc((unsigned long)mat->ncr * evl * sizeof(exp_t));
+    tc->ev  = (exp_t *)gb_malloc((unsigned long)mat->ncr * evl * sizeof(exp_t));
     for (i = 0; i < mat->ncr; ++i) {
         memcpy(tc->ev + (unsigned long)i * evl, sht->ev[hcm[mat->ncl+i]],
                 (unsigned long)evl * sizeof(exp_t));
@@ -1275,11 +1275,11 @@ static void generate_matrix_from_trace(
         }
     }
 
-    mat->rr       = (hm_t **)malloc((unsigned long)td.rld * sizeof(hm_t *));
+    mat->rr       = (hm_t **)gb_malloc((unsigned long)td.rld * sizeof(hm_t *));
     hm_t **rrows  = mat->rr;
-    mat->tr       = (hm_t **)malloc((unsigned long)td.tld * sizeof(hm_t *));
+    mat->tr       = (hm_t **)gb_malloc((unsigned long)td.tld * sizeof(hm_t *));
     hm_t **trows  = mat->tr;
-    mat->rba      = (rba_t **)malloc((unsigned long)td.tld * sizeof(rba_t *));
+    mat->rba      = (rba_t **)gb_malloc((unsigned long)td.tld * sizeof(rba_t *));
     rba_t **rba   = mat->rba;
 
     /* reducer rows, i.e. AB part */
@@ -1347,7 +1347,7 @@ static void generate_saturation_reducer_rows_from_trace(
     hi_t h;
 
     ts_t ts       = trace->ts[idx];
-    mat->rr       = (hm_t **)malloc((unsigned long)ts.rld * sizeof(hm_t *));
+    mat->rr       = (hm_t **)gb_malloc((unsigned long)ts.rld * sizeof(hm_t *));
     hm_t **rrows  = mat->rr;
 
     /* reducer rows, i.e. AB part */
