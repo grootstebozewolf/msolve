@@ -722,11 +722,9 @@ static void update_basis_f4(
     ct0 = cputime();
     rt0 = realtime();
 
-    /* compute number of new pairs we need to handle at most */
-    const uint64_t np = (uint64_t)bs->ld * npivs
-        + (uint64_t)npivs * (npivs > 0 ? npivs - 1 : 0) / 2;
-    check_enlarge_pairset(ps, np);
-
+    /* insert_and_update_spairs keeps the candidate pairs in its own arrays
+     * and enlarges the pair set only by the pairs that survive the
+     * criteria, so no room is reserved here for all candidates. */
     insert_and_update_spairs(ps, bs, bht, st, npivs);
 
     const bl_t lml          = bs->lml;
