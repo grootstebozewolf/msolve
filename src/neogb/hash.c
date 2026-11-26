@@ -2401,6 +2401,12 @@ static void insert_missing_multiplied_terms(
     free(off);
 }
 
+/* at most this many missing terms (with repetitions) are inserted in one
+ * batch in multiplied_polys_to_matrix_rows */
+#ifndef MISS_BATCH
+#define MISS_BATCH ((uint64_t)1 << 20)
+#endif
+
 static void multiplied_polys_to_matrix_rows(
     hm_t **rows,
     const len_t nr,
@@ -2472,37 +2478,71 @@ static void multiplied_polys_to_matrix_rows(
             nmiss[i]  = ctr;
         }
 
-        uint64_t nm = 0;
-        for (i = lo; i < hi; ++i) {
-            nm  +=  nmiss[i];
-        }
-        while (sht->eld + nm >= sht->esz) {
-            enlarge_hash_table(sht);
-        }
-        if (nm > 4096) {
-            insert_missing_multiplied_terms(rows+lo, hi-lo, hs+lo,
-                    ems + (uint64_t)lo * evl, polys+lo, nmiss+lo, nm,
-                    sht, bht, nthrds);
-            lo  = hi;
-            csz = 2 * csz;
-            continue;
-        }
-        for (i = lo; i < hi; ++i) {
-            if (nmiss[i] == 0) {
-                continue;
-            }
-            const hm_t * const poly   = polys[i];
-            hm_t *row                 = rows[i];
-            const exp_t * const em    = ems + (uint64_t)i * evl;
-            const val_t h             = hs[i];
-            const len_t len           = poly[LENGTH] + OFFSET;
-            for (l = OFFSET; l < len; ++l) {
-                if (row[l] == 0) {
-                    row[l]  = insert_multiplied_in_hash_table(
-                            h + hdb[poly[l]].val, em,
-                            evb + (uint64_t)poly[l] * evl, sht);
+        /* the missing terms are counted with repetitions, so the space
+         * reserved in sht and the buffers of the batch insertion grow with
+         * them: handle the rows in batches of at most MISS_BATCH missing
+         * terms. A later batch first looks up its missing terms again, the
+         * earlier ones may have inserted them; so the terms are inserted
+         * in the same order as without batches. */
+        len_t s = lo;
+        while (s < hi) {
+            len_t e = s;
+            uint64_t nm = 0;
+            if (s > lo) {
+#pragma omp parallel for num_threads(nthrds) \
+                private(i, l) schedule(dynamic, 4) if (hi - s > 8)
+                for (i = s; i < hi; ++i) {
+                    if (nmiss[i] == 0) {
+                        continue;
+                    }
+                    const hm_t * const poly   = polys[i];
+                    hm_t *row                 = rows[i];
+                    const exp_t * const em    = ems + (uint64_t)i * evl;
+                    const val_t h             = hs[i];
+                    const len_t len           = poly[LENGTH] + OFFSET;
+                    len_t ctr                 = 0;
+                    for (l = OFFSET; l < len; ++l) {
+                        if (row[l] == 0) {
+                            row[l]  = find_multiplied_in_hash_table(
+                                    h + hdb[poly[l]].val, em,
+                                    evb + (uint64_t)poly[l] * evl, sht);
+                            ctr += (row[l] == 0);
+                        }
+                    }
+                    nmiss[i]  = ctr;
                 }
             }
+            while (e < hi && (e == s || nm + nmiss[e] <= MISS_BATCH)) {
+                nm += nmiss[e];
+                e++;
+            }
+            while (sht->eld + nm >= sht->esz) {
+                enlarge_hash_table(sht);
+            }
+            if (nm > 4096) {
+                insert_missing_multiplied_terms(rows+s, e-s, hs+s,
+                        ems + (uint64_t)s * evl, polys+s, nmiss+s, nm,
+                        sht, bht, nthrds);
+            } else {
+                for (i = s; i < e; ++i) {
+                    if (nmiss[i] == 0) {
+                        continue;
+                    }
+                    const hm_t * const poly   = polys[i];
+                    hm_t *row                 = rows[i];
+                    const exp_t * const em    = ems + (uint64_t)i * evl;
+                    const val_t h             = hs[i];
+                    const len_t len           = poly[LENGTH] + OFFSET;
+                    for (l = OFFSET; l < len; ++l) {
+                        if (row[l] == 0) {
+                            row[l]  = insert_multiplied_in_hash_table(
+                                    h + hdb[poly[l]].val, em,
+                                    evb + (uint64_t)poly[l] * evl, sht);
+                        }
+                    }
+                }
+            }
+            s = e;
         }
         lo  = hi;
         csz = 2 * csz;
