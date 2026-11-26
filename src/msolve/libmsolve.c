@@ -46,4 +46,5 @@ uint32_t next_prime(uint32_t n);
 #include "../usolve/libusolve.h"
 #include "../neogb/libneogb.h"
 #include "msolve.c"
+#include "support.c"
 

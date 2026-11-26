@@ -125,6 +125,20 @@ int real_msolve_qq(
         int32_t
         );
 
+/* Writes to out_file (stdout if NULL) a 1-minimal subset of the
+ * generators that generates the unit ideal over the prime field, see
+ * support.c. Returns 0 on success, 2 if the ideal is not the unit ideal. */
+int unit_support(
+        data_gens_ff_t *gens,
+        const int32_t nr_threads,
+        const int32_t la_option,
+        const int32_t initial_hts,
+        const int32_t max_pairs,
+        const int32_t update_ht,
+        const int32_t info_level,
+        const char *out_file
+        );
+
 int core_msolve(
         int32_t la_option,
         int32_t use_signatures,

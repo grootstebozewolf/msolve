@@ -76,6 +76,7 @@ checkdiff       = \
 			  test/diff/diff_multy-qq.sh \
 			  test/diff/diff_nf-16.sh \
 			  test/diff/diff_nf-31.sh \
+			  test/diff/diff_unit-support-31.sh \
 			  test/diff/diff_nf-8.sh \
 			  test/diff/diff_nf-lm-bug.sh \
 			  test/diff/diff_nonradical-radicalshape-no-square-31.sh \

@@ -252,6 +252,11 @@ static inline void display_help(char *str){
   display_option_help_noopt("SEED ≥ 0 - use at your own risk; this is\n");
   display_option_help_noopt("           intended for developers and debug\n");
   display_option_help_noopt("           purposes only.\n");
+  display_option_help(0, "unit-support", "FILE", "Over a prime field, if the generators\n");
+  display_option_help_noopt("generate the unit ideal, write to FILE a subset\n");
+  display_option_help_noopt("of them which still does and from which no single\n");
+  display_option_help_noopt("generator can be dropped (numbered from 0 in input\n");
+  display_option_help_noopt("order). Every subset kept is verified with F4.\n");
   display_option_help('s', "", "HTS", "Initial hash table size given as a power of two.\n");
   display_option_help_noopt("17 (default).\n");
   display_option_help(0, "separating-element", "SEP", "Over the rationals, when the last variable does\n");
@@ -274,6 +279,9 @@ static inline void display_help(char *str){
   display_option_help('h', "help", "", "Prints this help.\n");
   display_option_help('V', "version", "", "Prints msolve's version.\n");
 }
+
+/* file for the unit support (option --unit-support), see support.c */
+static const char *unit_support_file = NULL;
 
 static void getoptions(
         int argc,
@@ -335,6 +343,7 @@ static void getoptions(
     BOOLEAN_ZEROS_OPTION,
     LEX_OPTION,
     ELIM_DRL_OPTION,
+    UNIT_SUPPORT_OPTION,
     /* Below is the template for the next long option with
      * no equivalent short option */
     /* NEXT_OPTION */
@@ -364,6 +373,7 @@ static void getoptions(
     {"split", required_argument, NULL, SPLIT_OPTION},
     {"reduce-gb", required_argument, NULL, 'r'},
     {"threads", required_argument, NULL, 't'},
+    {"unit-support", required_argument, NULL, UNIT_SUPPORT_OPTION},
     {"verbose", required_argument, NULL, 'v'},
     {"version", no_argument, NULL, 'V'},
     /* Below is the template for the next long option with
@@ -562,6 +572,9 @@ static void getoptions(
       break;
     case RANDOM_SEED_OPTION:
       *seed = strtoll(optarg, NULL, 10);
+      break;
+    case UNIT_SUPPORT_OPTION:
+      unit_support_file = optarg;
       break;
     /* Below is the template for the next long option with
      * no equivalent short option */
@@ -792,6 +805,13 @@ int main(int argc, char **argv){
             fprintf(ERRSTREAM, "\t linear algebra option set to 2\n");
         }
         la_option = 2;
+    }
+
+    if (unit_support_file != NULL) {
+        int r = unit_support(gens, nr_threads, la_option, initial_hts,
+                max_pairs, update_ht, info_level, unit_support_file);
+        free(gens->random_linear_form);
+        return r;
     }
 
     /* data structures for parametrization */
