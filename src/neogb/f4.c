@@ -404,8 +404,9 @@ static int32_t initialize_f4(
         start_trace_cache(md, bs);
     }
 
-    /* TODO: make this a command line argument */
-    md->max_gb_degree = INT32_MAX;
+    /* a positive max_gb_degree of the caller truncates the computation at
+     * this degree (see unit_support), otherwise there is no bound */
+    md->max_gb_degree = gmd->max_gb_degree > 0 ? gmd->max_gb_degree : INT32_MAX;
 
     /* link tracer into basis */
     if (md->trace_level == LEARN_TRACER) {
