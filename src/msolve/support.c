@@ -134,6 +134,44 @@ static int cmp_len(const void *a, const void *b, void *lens)
     return *(const int32_t *)a - *(const int32_t *)b;
 }
 
+/* Writes the current support to out_file, so that an interrupted search
+ * still leaves a verified unit subset behind. */
+static void write_support(
+        const char *out_file,
+        const data_gens_ff_t *gens,
+        const int32_t *sel,
+        const int32_t n,
+        const int32_t m,
+        const int32_t D,
+        const int64_t tests,
+        const int final
+        )
+{
+    int32_t *srt = (int32_t *)malloc((size_t)n * sizeof(int32_t));
+    if (srt == NULL) {
+        return;
+    }
+    memcpy(srt, sel, (size_t)n * sizeof(int32_t));
+    qsort(srt, (size_t)n, sizeof(int32_t), cmp_int32_support);
+    FILE *f = out_file != NULL ? fopen(out_file, "w") : stdout;
+    if (f == NULL) {
+        fprintf(ERRSTREAM, "Cannot open %s for writing.\n", out_file);
+        free(srt);
+        return;
+    }
+    fprintf(f, "#unit support modulo %ld: %d of %d generators, degree %d, %ld tests%s\n",
+            (long)gens->field_char, n, m, D, (long)tests,
+            final ? "" : " (search not finished, the subset is unit)");
+    fprintf(f, "#generators are numbered from 0 in input order\n");
+    for (int32_t i = 0; i < n; ++i) {
+        fprintf(f, "%d\n", srt[i]);
+    }
+    if (f != stdout) {
+        fclose(f);
+    }
+    free(srt);
+}
+
 int unit_support(
         data_gens_ff_t *gens,
         const int32_t nr_threads,
@@ -207,6 +245,9 @@ int unit_support(
         }
     }
     int32_t n = lo;
+    if (out_file != NULL) {
+        write_support(out_file, gens, sel, n, m, D, ctx.tests, 0);
+    }
     if (info_level > 0) {
         fprintf(VERBSTREAM, "unit support: shortest unit prefix %d of %d\n", n, m);
     }
@@ -229,6 +270,9 @@ int unit_support(
                 n = r;
                 parts = parts > 2 ? parts - 1 : 2;
                 reduced = 1;
+                if (out_file != NULL) {
+                    write_support(out_file, gens, sel, n, m, D, ctx.tests, 0);
+                }
                 if (info_level > 0) {
                     fprintf(VERBSTREAM, "unit support: %d generators (%ld tests)\n",
                             n, (long)ctx.tests);
@@ -245,22 +289,7 @@ int unit_support(
     }
 
     /* report the support in input order, 0-based */
-    qsort(sel, (size_t)n, sizeof(int32_t), cmp_int32_support);
-    FILE *f = out_file != NULL ? fopen(out_file, "w") : stdout;
-    if (f == NULL) {
-        fprintf(ERRSTREAM, "Cannot open %s for writing.\n", out_file);
-        free(start); free(sel); free(tmp);
-        return 1;
-    }
-    fprintf(f, "#unit support modulo %ld: %d of %d generators, degree %d, %ld tests\n",
-            (long)gens->field_char, n, m, D, (long)ctx.tests);
-    fprintf(f, "#generators are numbered from 0 in input order\n");
-    for (i = 0; i < n; ++i) {
-        fprintf(f, "%d\n", sel[i]);
-    }
-    if (f != stdout) {
-        fclose(f);
-    }
+    write_support(out_file, gens, sel, n, m, D, ctx.tests, 1);
     free(start);
     free(sel);
     free(tmp);
